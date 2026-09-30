@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="佐賀大分">
+<title>佐賀・大分行程</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap">
+<style>
+:root{--bg:#f1f4f6;--card:#fff;--ink:#14213d;--sub:#5b6b80;--line:#d9e0e7;--acc:#e0a91f;--acc-ink:#14213d;--map:#e6edf2;--route:#14213d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1622;--card:#17212f;--ink:#e8eef5;--sub:#93a3b8;--line:#263548;--map:#111c2a;--route:#e8eef5}}
+:root[data-theme="dark"]{--bg:#0e1622;--card:#17212f;--ink:#e8eef5;--sub:#93a3b8;--line:#263548;--map:#111c2a;--route:#e8eef5}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New",-apple-system,"PingFang TC","Noto Sans TC",sans-serif;line-height:1.6}
+header{padding:20px 18px 8px}
+h1{margin:0;font-size:1.7rem;font-weight:900;letter-spacing:.02em}
+header p{margin:2px 0 0;color:var(--sub);font-size:.9rem}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:8px;overflow-x:auto;padding:10px 18px;background:var(--bg)}
+nav button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:700;padding:8px 16px;border-radius:999px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+nav button:focus-visible,a:focus-visible,li:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+main{padding:4px 18px 32px;max-width:640px;margin:0 auto}
+.map{background:var(--map);border-radius:14px;overflow:hidden;margin:6px 0 14px}
+#map{height:300px;width:100%}
+.map{isolation:isolate}
+.pin{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);border:2px solid var(--bg);font:900 12px/22px sans-serif;text-align:center;box-shadow:0 1px 4px #0006}
+.pin.on{background:var(--acc);color:#14213d;transform:scale(1.25)}
+ol{list-style:none;margin:0;padding:0}
+li{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+li.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.n{flex:0 0 28px;height:28px;border-radius:50%;background:var(--ink);color:var(--bg);font-weight:900;font-size:.85rem;display:grid;place-items:center}
+.b{flex:1;min-width:0}
+.t{font-weight:700;overflow-wrap:anywhere}
+.hr{font-size:.85rem;color:var(--sub);margin-top:2px}
+.go{display:flex;gap:14px;margin-top:4px;font-size:.85rem}
+.go a{color:var(--sub);text-decoration:underline;text-underline-offset:3px;padding:4px 0}
+</style>
+</head>
+<body>
+<header><h1>佐賀・大分</h1><p>5 天 4 夜　九州</p></header>
+<nav id="tabs" role="tablist"></nav>
+<main><div class="map"><div id="map"></div></div><div id="view"></div></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+var D=[
+["DAY 1",[["佐賀機場",33.1505692,130.3018177],["大魚神社海中鳥居",33.0312525,130.1777484],["祐德稻荷神社",33.073778,130.1079317,"境內可自由參拜；授與所約 8:30–16:30（依現場公告為準）"],["肥前浜宿酒蔵通り",33.0924071,130.1151793],["HOTEL R9 The Yard 佐賀鹿島",33.1206823,130.091994],["(株)村岡屋 鹿島店",33.1106366,130.0875857]]],
+["DAY 2",[["武雄溫泉 樓門",33.1962371,130.0146614],["佐嘉平川屋（武雄溫泉 本店）",33.196222,130.0150825],["武雄市圖書館·歷史資料館",33.1890331,130.0236947,"圖書館 9:00–21:00，全年無休；歷史資料館 9:00–17:00"],["御船山樂園",33.1823029,130.0179788],["武雄 旅 書店",33.1960484,130.0229315],["youme Town 武雄",33.1887364,130.0251081],["中央飯店 武雄",33.1954133,130.0231871]]],
+["DAY 3",[["湯布院駅前",33.2629542,131.3555275],["Siesta Organic Cafe",33.264324,131.3581301],["湯之坪街道",33.2673861,131.3645627],["金鱗湖",33.2666644,131.3690272],["Traditional Japanese inn Ryokan Hachisunoito",33.266614,131.3518159]]],
+["DAY 4",[["九州自然動物園",33.3509251,131.4137658],["地獄蒸布丁 岡本屋",33.3180542,131.4526114],["別府地獄之旅",33.3158833,131.4696745],["Avatar印度餐廳",33.3151846,131.4723939],["地獄蒸工房 鐵輪",33.3154852,131.4762201],["別府塔",33.2817713,131.5059174],["Noodle Factory Life",33.2775997,131.5039761],["Umi no Hotel Hajime",33.2813065,131.507277]]],
+["DAY 5",[["車站町一丁目 別府",33.2798442,131.5003895],["大分機場",33.4796632,131.7362008]]]
+];
+var tabs=document.getElementById("tabs"),view=document.getElementById("view"),cur=0,sel=-1,map,mk=[],line;
+function q(s){return encodeURIComponent(s)}
+function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function icon(i,on){return L.divIcon({className:"",html:'<div class="pin'+(on?' on':'')+'">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]})}
+function initMap(){
+  map=L.map("map",{zoomControl:true});
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map);
+}
+function drawMap(){
+  mk.forEach(function(m){m.remove()});mk=[];if(line)line.remove();
+  var pts=D[cur][1],ll=pts.map(function(p){return [p[1],p[2]]});
+  line=L.polyline(ll,{color:"#e0a91f",weight:3,opacity:.8,dashArray:"6 6"}).addTo(map);
+  pts.forEach(function(p,i){
+    var m=L.marker(ll[i],{icon:icon(i,false)}).addTo(map);
+    m.on("click",function(){pick(i,false)});mk.push(m)});
+  map.fitBounds(L.latLngBounds(ll).pad(.2),{maxZoom:15});
+  setTimeout(function(){map.invalidateSize()},50);
+}
+function list(){
+  var pts=D[cur][1],h='<ol>';
+  pts.forEach(function(p,i){
+    h+='<li data-i="'+i+'" tabindex="0"><span class="n">'+(i+1)+'</span><div class="b"><div class="t">'+esc(p[0])+'</div>'+(p[3]?'<div class="hr">營業時間　'+esc(p[3])+'</div>':'')+'<div class="go"><a href="https://maps.apple.com/?ll='+p[1]+','+p[2]+'&q='+q(p[0])+'">Apple 地圖</a><a href="https://www.google.com/maps/search/?api=1&query='+p[1]+','+p[2]+'" target="_blank" rel="noopener">Google 地圖</a></div></div></li>'});
+  view.innerHTML=h+'</ol><p class="hr" style="margin-top:10px">未列營業時間的景點，請點 Google 地圖查看最新時間。</p>';
+}
+function pick(i,pan){
+  sel=i;
+  view.querySelectorAll("li").forEach(function(l,k){l.classList.toggle("on",k===i)});
+  mk.forEach(function(m,k){m.setIcon(icon(k,k===i))});
+  var p=D[cur][1][i];
+  if(pan)map.flyTo([p[1],p[2]],Math.max(map.getZoom(),15),{duration:.6});
+  else{var l=view.querySelectorAll("li")[i];if(l)l.scrollIntoView({block:"nearest",behavior:"smooth"})}
+}
+function draw(){
+  tabs.innerHTML=D.map(function(d,i){return '<button role="tab" aria-selected="'+(i===cur)+'" data-d="'+i+'">'+d[0]+'</button>'}).join("");
+  sel=-1;list();drawMap();
+}
+tabs.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;cur=+b.dataset.d;
+  try{localStorage.setItem("day",cur)}catch(x){}draw();window.scrollTo(0,0)});
+view.addEventListener("click",function(e){
+  if(e.target.closest("a"))return;
+  var t=e.target.closest("[data-i]");if(t){pick(+t.dataset.i,true);document.getElementById("map").scrollIntoView({block:"center",behavior:"smooth"})}});
+try{var s=+localStorage.getItem("day");if(s>=0&&s<D.length)cur=s}catch(x){}
+initMap();draw();
+</script>
+</body>
+</html>
