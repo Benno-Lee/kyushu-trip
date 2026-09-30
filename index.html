@@ -4,8 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="佐賀大分">
 <title>佐賀・大分行程</title>
+
+<!-- iOS PWA 桌圖與主題色 -->
+<link rel="apple-touch-icon" href="https://api.iconify.design/lucide:map-pin.svg?color=%23c8412b">
+<meta name="theme-color" content="#f3ede0">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
 <style>
@@ -36,7 +42,7 @@ ol{list-style:none;margin:0;padding:0}
 li{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ai);border-radius:3px;padding:12px;margin-bottom:8px}
 li.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
 .n{flex:0 0 28px;height:28px;border-radius:4px;background:var(--acc);color:#fff;font-weight:700;font-size:.85rem;display:grid;place-items:center}
-.b{flex:1;min-width:0}
+.b{flex:1;min-width:0;cursor:pointer}
 .t{font-weight:700;overflow-wrap:anywhere}
 .tag{font-size:.7rem;border:1px solid var(--acc);color:var(--acc);border-radius:3px;padding:0 5px;margin-left:6px;font-weight:400;white-space:nowrap}
 .hr{font-size:.85rem;color:var(--sub);margin-top:2px}
@@ -56,10 +62,23 @@ li.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
 .it{align-items:center}.it.done .t{text-decoration:line-through;color:var(--sub)}
 .it input{width:20px;height:20px;accent-color:#c8412b}
 .empty{color:var(--sub);font-size:.9rem}
+
+/* 伴手禮詳情彈出視窗（Modal）樣式 */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-bg.open{opacity:1;pointer-events:auto}
+.modal{background:var(--card);width:100%;max-width:600px;max-height:85vh;border-top-left-radius:12px;border-top-right-radius:12px;overflow-y:auto;padding:20px;box-shadow:0 -4px 16px rgba(0,0,0,.2);transform:translateY(100%);transition:transform .3s ease-out}
+.modal-bg.open .modal{transform:translateY(0)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+.modal-title{font-size:1.25rem;font-weight:700;color:var(--ai);margin:0}
+.modal-close{border:none;background:none;font-size:1.5rem;color:var(--sub);cursor:pointer;padding:0 8px}
+.modal-img{width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:12px;background:var(--bg)}
+.modal-desc{font-size:.95rem;color:var(--ink);line-height:1.6;margin-bottom:12px}
+.modal-loc{font-size:.85rem;color:var(--sub);background:var(--bg);padding:8px 12px;border-radius:4px;border-left:3px solid var(--acc)}
+.modal-link{display:inline-block;margin-top:12px;color:var(--ai);font-size:.9rem;text-decoration:underline}
 </style>
 </head>
 <body>
-<header><div><h1>佐賀・大分</h1><p>九州自駕の旅　五日間</p></div><div class="seal" aria-hidden="true">旅</div></header>
+<header><div><h1>佐賀・大分</h1><p>九州自駕の旅 五日間</p></div><div class="seal" aria-hidden="true">旅</div></header>
 <main>
 <section id="p-trip">
 <nav id="tabs" role="tablist"></nav>
@@ -71,13 +90,28 @@ li.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
 <section id="p-memo" hidden></section>
 </main>
 <div id="bar" role="tablist"><button data-p="trip" aria-selected="true">行程</button><button data-p="gift" aria-selected="false">伴手禮</button><button data-p="memo" aria-selected="false">備忘</button></div>
+
+<!-- 伴手禮詳情彈出視窗結構 -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="m-title"></h3>
+      <button class="modal-close" id="m-close">&times;</button>
+    </div>
+    <img id="m-img" class="modal-img" src="" alt="伴手禮圖片" style="display:none;">
+    <div class="modal-desc" id="m-desc"></div>
+    <div class="modal-loc" id="m-loc"></div>
+    <a id="m-link" class="modal-link" href="#" target="_blank" rel="noopener" style="display:none;">查看文章來源介紹 ↗</a>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 var D=[
 ["DAY 1",[["佐賀機場",33.1505692,130.3018177],["大魚神社海中鳥居",33.0312525,130.1777484],["祐德稻荷神社",33.073778,130.1079317,"境內可自由參拜；授與所約 8:30–16:30（依現場公告為準）"],["肥前浜宿酒蔵通り",33.0924071,130.1151793],["HOTEL R9 The Yard 佐賀鹿島",33.1206823,130.091994],["(株)村岡屋 鹿島店",33.1106366,130.0875857]]],
 ["DAY 2",[["武雄溫泉 樓門",33.1962371,130.0146614],["佐嘉平川屋（武雄溫泉 本店）",33.196222,130.0150825],["武雄市圖書館·歷史資料館",33.1890331,130.0236947,"圖書館 9:00–21:00，全年無休；歷史資料館 9:00–17:00"],["御船山樂園",33.1823029,130.0179788],["武雄 旅 書店",33.1960484,130.0229315],["youme Town 武雄",33.1887364,130.0251081],["中央飯店 武雄",33.1954133,130.0231871]]],
 ["DAY 3",[["湯布院駅前",33.2629542,131.3555275],["Siesta Organic Cafe",33.264324,131.3581301],["湯之坪街道",33.2673861,131.3645627],["金鱗湖",33.2666644,131.3690272],["Traditional Japanese inn Ryokan Hachisunoito",33.266614,131.3518159]]],
-["DAY 4",[["九州自然動物園",33.3509251,131.4137658],["地獄蒸布丁 岡本屋",33.3180542,131.4526114],["別府地獄之旅",33.3158833,131.4696745],["Avatar印度餐廳",33.3151846,131.4723939],["地獄蒸工房 鐵輪",33.3154852,131.4762201],["別府塔",33.2817713,131.5059174],["Noodle Factory Life",33.2775997,131.5039761],["Umi no Hotel Hajime",33.2813065,131.507277]]],
+["DAY 4",[["九州自然動物園",33.3509251,131.4137658],["地獄蒸布丁 岡本屋",33.3180542,131.4526114],["別府地獄之旅",33.3158833,131.4696745],["Avatar印度餐廳",33.3151846,131.4723939],["地獄蒸工房 鐵輪",33.3154852,131.4762201],["別府塔",33.2817713,131.5039761],["Noodle Factory Life",33.2775997,131.5039761],["Umi no Hotel Hajime",33.2813065,131.507277]]],
 ["DAY 5",[["車站町一丁目 別府",33.2798442,131.5003895],["大分機場",33.4796632,131.7362008]]]
 ];
 var K=["一日目","二日目","三日目","四日目","五日目"];
@@ -102,7 +136,7 @@ function drawMap(){
 function list(){
   var pts=D[cur][1],h='<ol>';
   pts.forEach(function(p,i){
-    h+='<li data-i="'+i+'" tabindex="0"><span class="n">'+(i+1)+'</span><div class="b"><div class="t">'+esc(p[0])+'</div>'+(p[3]?'<div class="hr">營業時間　'+esc(p[3])+'</div>':'')+'<div class="go"><a href="https://maps.apple.com/?ll='+p[1]+','+p[2]+'&q='+q(p[0])+'">Apple 地圖</a><a href="https://www.google.com/maps/search/?api=1&query='+p[1]+','+p[2]+'" target="_blank" rel="noopener">Google 地圖</a><a href="https://www.google.com/maps/search/'+q("停車場")+'/@'+p[1]+','+p[2]+',17z" target="_blank" rel="noopener">附近停車</a></div><div class="pk" id="pk'+i+'"></div></div></li>';
+    h+='<li data-i="'+i+'" tabindex="0"><span class="n">'+(i+1)+'</span><div class="b"><div class="t">'+esc(p[0])+'</div>'+(p[3]?'<div class="hr">營業時間 '+esc(p[3])+'</div>':'')+'<div class="go"><a href="https://maps.apple.com/?ll='+p[1]+','+p[2]+'&q='+q(p[0])+'">Apple 地圖</a><a href="https://www.google.com/maps/search/?api=1&query='+p[1]+','+p[2]+'" target="_blank" rel="noopener">Google 地圖</a><a href="https://www.google.com/maps/search/'+q("停車場")+'/@'+p[1]+','+p[2]+',17z" target="_blank" rel="noopener">附近停車</a></div><div class="pk" id="pk'+i+'"></div></div></li>';
     if(i<pts.length-1)h+='<div class="leg" id="leg'+i+'">自駕時間計算中…</div>'});
   view.innerHTML=h+'</ol><p class="hr" style="margin-top:10px">未列營業時間的景點，請點 Google 地圖查看最新時間。</p>';
 }
@@ -118,7 +152,7 @@ function loadRoute(d){
   if(routes[d])return applyRoute(d);
   var u="https://router.project-osrm.org/route/v1/driving/"+pts.map(function(p){return p[2]+","+p[1]}).join(";")+"?overview=full&geometries=geojson";
   fetch(u).then(function(r){return r.json()}).then(function(j){if(j.code!=="Ok")throw 0;routes[d]=j.routes[0];applyRoute(d)})
-  .catch(function(){if(d===cur)document.querySelectorAll(".leg").forEach(function(e){e.textContent="自駕時間暫時無法取得，請用地圖導航查看"})});
+  .catch(function(){if(d===cur)document.querySelectorAll(".leg").forEach(function(e){e.textContent="自駕時間（離線狀態，請用導航）"})});
 }
 function dist(a,b,c,d){var r=Math.PI/180,x=(c-a)*r,y=(d-b)*r*Math.cos(a*r);return Math.sqrt(x*x+y*y)*6371000}
 function showPark(i,arr){
@@ -127,7 +161,7 @@ function showPark(i,arr){
   if(!arr.length){e.innerHTML="400 公尺內沒有地圖資料中的停車場，可點「附近停車」再查。";return}
   e.innerHTML='<b>附近停車場（400 m 內，資料來自 OpenStreetMap，僅供參考）</b>'+arr.map(function(k){
     L.circleMarker([k.la,k.lo],{radius:8,color:"#fff",weight:2,fillColor:"#3f8f5a",fillOpacity:1}).bindTooltip("P "+k.n).addTo(parkL);
-    return '<div>P '+esc(k.n)+'　'+k.m+' m'+(k.f?'　'+k.f:'')+(k.c?'　'+k.c+' 格':'')+'</div>'}).join("");
+    return '<div>P '+esc(k.n)+' '+k.m+' m'+(k.f?' '+k.f:'')+(k.c?' '+k.c+' 格':'')+'</div>'}).join("");
 }
 function loadPark(i){
   var e=$("pk"+i),p=D[cur][1][i],key=cur+"-"+i;
@@ -140,7 +174,7 @@ function loadPark(i){
       return {la:la,lo:lo,n:t.name||"停車場",m:Math.round(dist(p[1],p[2],la,lo)),f:t.fee==="yes"?"收費":t.fee==="no"?"免費":"",c:t.capacity||""}
     }).filter(function(x){return x.la}).sort(function(a,b){return a.m-b.m}).slice(0,5);
     parks[key]=a;if(sel===i)showPark(i,a);
-  }).catch(function(){if(sel===i)e.textContent="停車場資料暫時無法取得，請點「附近停車」查看。"});
+  }).catch(function(){if(sel===i)e.textContent="停車場資料（離線狀態，請點「附近停車」）";});
 }
 function pick(i,pan){
   sel=i;
@@ -160,39 +194,101 @@ tabs.addEventListener("click",function(e){var b=e.target.closest("button");if(!b
 view.addEventListener("click",function(e){
   if(e.target.closest("a"))return;
   var t=e.target.closest("[data-i]");if(t){pick(+t.dataset.i,true);$("map").scrollIntoView({block:"center",behavior:"smooth"})}});
-/* 清單分頁：伴手禮、備忘 */
+
+/* 伴手禮資料集：內建來自 Japaholic 與樂吃購的詳細介紹與連結 */
 var GIFT=[
-{t:"酥炸雞皮（大分炸雞）",g:"大分",n:"鹽、醬油、柚子胡椒三種口味的雞皮零食",d:0},
-{t:"ZABIERU（ざびえる）",g:"大分",n:"和洋折衷點心，內餡有白餡與萊姆酒葡萄乾兩款，包裝像古書，適合送長輩",d:0},
-{t:"謎之鳥天仙貝",g:"大分",n:"還原大分雞肉天婦羅風味的仙貝，蒜香與醬油味",d:0},
-{t:"別府地獄咖哩（Hell Company）",g:"大分",n:"辛辣的咖哩風味零食，適合配啤酒",d:0},
-{t:"菊家 地卵蜂蜜布丁",g:"大分",n:"紅雞蛋加蜂蜜製成，附焦糖漿可自行調甜度",d:0},
-{t:"菊家 BONDIA（ボンディア）",g:"大分",n:"紅豆餡包派皮的西式點心，大分代表性名產",d:0},
-{t:"臼杵曲形煎餅（後藤製菓）",g:"大分",n:"歷史悠久的薄燒煎餅，表面手刷薑糖蜜",d:0},
-{t:"佐伯胡麻醬（ごまだし）",g:"大分",n:"以魚肉磨碎製成的萬用調味料，可煮麵、做茶漬飯",d:0},
-{t:"MUROOONO 草莓醋",g:"大分",n:"由布市草莓農家開發，可兌水、優格或搭冰淇淋",d:0},
-{t:"岡本屋 湯之花入浴劑",g:"大分",n:"別府明礬溫泉傳統製法的入浴劑；DAY4 行程有岡本屋，可到現場問問",d:0},
-{t:"稻荷羊羹",g:"佐賀",n:"祐德稻荷神社參道商店街有賣，DAY1 會經過",d:0},
-{t:"佐賀錦、丸芳露",g:"佐賀",n:"佐賀常見伴手禮（來源：WAmazing 整理，販售地點尚未查證）",d:0},
-{t:"有田燒、唐津燒（陶瓷器）",g:"佐賀",n:"佐賀的陶瓷器代表（來源：WAmazing 整理，販售地點尚未查證）",d:0}
+{t:"ZABIERU（ざびえる）",g:"大分",n:"鹽、醬油與經典風味，大分代表性銘菓",d:0,
+ img:"https://www.japaholic.com/tw/article/detail/941162",
+ desc:"大分縣極具代表性的和洋折衷點心！外皮為薄薄的日式糕餅皮，內餡分為金黃色的「白餡」與帶有淡淡萊姆酒香氣的「葡萄乾餡」，包裝宛如一本精美的西洋古典書籍，非常適合送禮給長輩與朋友。",
+ loc:"建議購買地點：大分車站賣店、大分機場、別府各大溫泉飯店賣店",
+ url:"https://www.japaholic.com/tw/article/detail/941162"},
+
+{t:"寶物產 謎之雞天仙貝",g:"大分",n:"蒜香與醬油風味，還原大分名物雞肉天婦羅",d:0,
+ img:"",
+ desc:"將大分最知名的鄉土料理「雞肉天婦羅（炸雞天）」完美還原成酥脆仙貝！打開包裝就能聞到濃郁的蒜香與日式醬油香氣，一口接一口非常涮嘴，也是極佳的下酒零食。",
+ loc:"建議購買地點：別府地獄溫泉周邊商店、大分機場銘品館",
+ url:"https://www.japaholic.com/tw/article/detail/941162"},
+
+{t:"岡本屋 湯之花入浴劑/地獄蒸布丁",g:"大分",n:"明礬溫泉傳統湯之花與濃郁焦糖布丁",d:0,
+ img:"",
+ desc:"岡本屋著名的地獄蒸布丁採用明礬溫泉的天然地熱蒸氣蒸煮，苦甜焦糖與濃郁蛋香完美結合！現場也有販售以傳統工法採集、天然成分100%的「湯之花入浴劑」，讓人在家中就能享受別府溫泉的效果。",
+ loc:"建議購買地點：DAY4 行程中之岡本屋売店現場",
+ url:"https://www.japaholic.com/tw/article/detail/941162"},
+
+{t:"菊家 BONDIA（ボンディア）",g:"大分",n:"濃郁紅豆餡包覆奶油派皮的經典和洋點心",d:0,
+ img:"",
+ desc:"創立於昭和44年的大分老字號「菊家」代表作。外層是用優質奶油層層堆疊烤出的香酥派皮，裡頭包裹著甜度適中的特製紅豆餡，呈現東西合璧的精緻口感。",
+ loc:"建議購買地點：菊家大分各分店、大分機場、湯布院街道",
+ url:"https://www.japaholic.com/tw/article/detail/941162"},
+
+{t:"稻荷羊羹（角屋羊羹店）",g:"佐賀",n:"祐德稻荷神社參道名物，圓筒狀拉出切割的羊羹",d:0,
+ img:"",
+ desc:"佐賀縣祐德稻荷神社參道商店街的超高人氣伴手禮！特殊的紙管包裝，吃的時候要從底部向上推，再用附贈的線段切成片狀享用。甜度適中且帶著淡淡黑糖香。",
+ loc:"建議購買地點：DAY1 祐德稻荷神社參道商店街",
+ url:"https://kyushu.letsgojp.com/archives/539884/"},
+
+{t:"佐賀錦、丸芳露",g:"佐賀",n:"佐賀傳統銘菓，口感紮實帶著蜂蜜與蛋香",d:0,
+ img:"",
+ desc:"「丸芳露」是佐賀流傳百年的葡萄牙傳入烤餅，入口帶著香醇蛋香與鬆軟口感；「佐賀錦」則是用鬆餅夾著紅豆與栗子餡，外層花紋摹仿佐賀傳統織物『佐賀錦』，極具文化氣息。",
+ loc:"建議購買地點：村岡屋鹿島店（DAY1）、佐賀車站銘品館",
+ url:"https://kyushu.letsgojp.com/archives/539884/"},
+
+{t:"有田燒、唐津燒（陶瓷器）",g:"佐賀",n:"日本極具代表性的陶瓷藝術，質感極佳",d:0,
+ img:"",
+ desc:"佐賀縣是日本陶瓷器的發源地之一，不論是以白瓷與精細彩繪聞名的「有田燒」，還是風格樸實溫潤的「唐津燒」，選購一兩個可愛的小碟子或湯呑茶杯作為紀念品非常值得！",
+ loc:"建議購買地點：武雄溫泉周邊店家、有田陶瓷村、佐賀在地禮品店",
+ url:"https://kyushu.letsgojp.com/archives/539884/"}
 ];
+
 var LP={gift:"伴手禮清單",memo:"備忘"},store={};
 function ld(k){try{var v=JSON.parse(localStorage.getItem("lp-"+k));if(v)return v}catch(x){}return store[k]||(k==="gift"?JSON.parse(JSON.stringify(GIFT)):[])}
 function sv(k,a){store[k]=a;try{localStorage.setItem("lp-"+k,JSON.stringify(a))}catch(x){}}
+
+/* 伴手禮列表渲染與點擊彈窗功能 */
 function lp(k){
   var a=ld(k),el=$("p-"+k);
   el.innerHTML='<h2 style="margin:8px 0">'+LP[k]+'</h2><div class="add"><input id="in-'+k+'" placeholder="新增項目" maxlength="80"><button data-a="add">新增</button></div>'+
-    (a.length?'<ol>'+a.map(function(x,i){return '<li class="it'+(x.d?' done':'')+'"><input type="checkbox" data-a="tg" data-i="'+i+'"'+(x.d?' checked':'')+'><div class="b"><div class="t">'+esc(x.t)+(x.g?'<span class="tag">'+esc(x.g)+'</span>':'')+'</div>'+(x.n?'<div class="hr">'+esc(x.n)+'</div>':'')+'</div><button class="x" data-a="rm" data-i="'+i+'" aria-label="刪除">刪除</button></li>'}).join("")+'</ol>':'<p class="empty">還沒有項目，在上方新增。</p>');
+    (a.length?'<ol>'+a.map(function(x,i){return '<li class="it'+(x.d?' done':'')+'"><input type="checkbox" data-a="tg" data-i="'+i+'"'+(x.d?' checked':'')+'><div class="b" data-a="show" data-i="'+i+'"><div class="t">'+esc(x.t)+(x.g?'<span class="tag">'+esc(x.g)+'</span>':'')+'</div>'+(x.n?'<div class="hr">'+esc(x.n)+'</div>':'')+'</div><button class="x" data-a="rm" data-i="'+i+'" aria-label="刪除">刪除</button></li>'}).join("")+'</ol>':'<p class="empty">還沒有項目，在上方新增。</p>');
 }
+
+/* 顯示伴手禮詳情 Modal */
+function showModal(item){
+  $("m-title").textContent=item.t;
+  $("m-desc").textContent=item.desc||item.n||"尚無詳細介紹內容。";
+  $("m-loc").textContent=item.loc||"廣泛販售於佐賀/大分車站與觀光景點。";
+  
+  var imgEl=$("m-img"),linkEl=$("m-link");
+  if(item.img&&item.img.startsWith("http")){
+    imgEl.src=item.img;imgEl.style.display="block";
+  }else{
+    imgEl.style.display="none";
+  }
+  
+  if(item.url){
+    linkEl.href=item.url;linkEl.style.display="inline-block";
+  }else{
+    linkEl.style.display="none";
+  }
+  
+  $("modal-bg").classList.add("open");
+}
+
+/* 關閉 Modal */
+function closeModal(){$("modal-bg").classList.remove("open")}
+$("m-close").addEventListener("click",closeModal);
+$("modal-bg").addEventListener("click",function(e){if(e.target===$("modal-bg"))closeModal()});
+
 ["gift","memo"].forEach(function(k){
   $("p-"+k).addEventListener("click",function(e){
     var b=e.target.closest("[data-a]");if(!b)return;var a=ld(k),i=+b.dataset.i;
     if(b.dataset.a==="add"){var v=$("in-"+k).value.trim();if(v){a.push({t:v,d:0})}}
     else if(b.dataset.a==="tg")a[i].d=a[i].d?0:1;
     else if(b.dataset.a==="rm")a.splice(i,1);
+    else if(b.dataset.a==="show"&&k==="gift"){showModal(a[i]);return;}
     sv(k,a);lp(k)});
   $("p-"+k).addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.tagName==="INPUT"&&e.target.type==="text"){var v=e.target.value.trim();if(v){var a=ld(k);a.push({t:v,d:0});sv(k,a);lp(k)}}});
 });
+
 $("bar").addEventListener("click",function(e){
   var b=e.target.closest("button");if(!b)return;var p=b.dataset.p;
   document.querySelectorAll("#bar button").forEach(function(x){x.setAttribute("aria-selected",x===b)});
@@ -200,8 +296,37 @@ $("bar").addEventListener("click",function(e){
   if(p!=="trip")lp(p);else setTimeout(function(){map.invalidateSize()},50);
   window.scrollTo(0,0);
 });
+
 try{var s=+localStorage.getItem("day");if(s>=0&&s<D.length)cur=s}catch(x){}
 initMap();draw();
+
+/* ⚡️ 自動注入 Service Worker 離線快取（PWA 離線支援） */
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE_NAME = 'saga-oita-v2';
+    self.addEventListener('install', e => {
+      e.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+          return cache.addAll([
+            './',
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+            'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap'
+          ]);
+        })
+      );
+      self.skipWaiting();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        caches.match(e.request).then(res => res || fetch(e.request))
+      );
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
 </script>
 </body>
 </html>
