@@ -4,247 +4,185 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="佐賀大分">
-<title>佐賀・大分 旅の記録</title>
+<meta name="apple-mobile-web-app-title" content="旅の栞">
+<title>旅の栞｜佐賀・大分</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Zen+Old+Mincho:wght@700;900&display=swap">
 <style>
-:root{--bg:#f4efe4;--card:#fbf8f1;--ink:#1b2a41;--sub:#6b6458;--line:#d8cfbd;--red:#c8372d;--ind:#1f3a5f;--gold:#d9a441;--paper:#f4efe4;--route:#2c5aa0;
-box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1c2028;--ink:#ece6d8;--sub:#a39b8b;--line:#2d323c;--ind:#3b5f94;--route:#7fa6e6}}
-:root[data-theme="dark"]{--bg:#14171d;--card:#1c2028;--ink:#ece6d8;--sub:#a39b8b;--line:#2d323c;--ind:#3b5f94;--route:#7fa6e6}
+:root{--bg:#f4f2ec;--card:#fbfaf6;--ink:#1d2430;--sub:#6b7280;--line:#dcd7ca;--ai:#264a6e;--shu:#c9432e;--onai:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--card:#1a2029;--ink:#e9e6df;--sub:#9aa3b0;--line:#2b3340;--ai:#7fa6cf;--shu:#e8654d;--onai:#10151c}}
+:root[data-theme="dark"]{--bg:#12161d;--card:#1a2029;--ink:#e9e6df;--sub:#9aa3b0;--line:#2b3340;--ai:#7fa6cf;--shu:#e8654d;--onai:#10151c}
+[hidden]{display:none!important}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New",-apple-system,"PingFang TC","Noto Sans TC",sans-serif;line-height:1.65}
-.mi,h1,h2{font-family:"Shippori Mincho","Hiragino Mincho ProN","Noto Serif TC",serif}
-header{background-color:#1f3a5f;color:#f4efe4;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 18px;background-image:radial-gradient(circle at 50% 100%,transparent 36%,rgba(255,255,255,.13) 37% 40%,transparent 41% 56%,rgba(255,255,255,.13) 57% 60%,transparent 61%);background-size:46px 23px;border-bottom:4px solid var(--red)}
-h1{margin:0;font-size:1.9rem;font-weight:800;letter-spacing:.12em}
-header p{margin:2px 0 0;font-size:.85rem;opacity:.85;letter-spacing:.2em}
-h2{margin:6px 0 10px;font-size:1.15rem;font-weight:800;border-left:5px solid var(--red);padding-left:10px}
-nav{position:sticky;top:0;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:10px 18px;background:var(--bg);border-bottom:1px solid var(--line)}
-nav button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:700;padding:6px 16px;border-radius:2px;cursor:pointer;letter-spacing:.05em}
-nav button[aria-selected="true"]{background:var(--ind);border-color:var(--ind);color:#f4efe4}
-button:focus-visible,a:focus-visible,li:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-main{padding:12px 18px 100px;max-width:640px;margin:0 auto}
-.map{border:1px solid var(--line);border-radius:4px;overflow:hidden;margin:2px 0 12px;isolation:isolate}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(72px + env(safe-area-inset-bottom,0px));background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New",-apple-system,"PingFang TC","Noto Sans TC",sans-serif;line-height:1.6}
+header{padding:22px 18px 6px;display:flex;align-items:baseline;gap:12px;max-width:640px;margin:0 auto}
+h1{margin:0;font-family:"Zen Old Mincho","Noto Serif TC",serif;font-weight:900;font-size:1.9rem;letter-spacing:.12em}
+header p{margin:0;color:var(--sub);font-size:.85rem}
+main{max-width:640px;margin:0 auto;padding:0 18px}
+#days{display:flex;gap:6px;overflow-x:auto;padding:10px 0}
+#days button{flex:0 0 auto;background:var(--card);color:var(--sub);border:1px solid var(--line);font:inherit;font-weight:700;padding:7px 14px;border-radius:2px;cursor:pointer}
+#days button[aria-selected=true]{color:var(--ink);border-color:var(--shu);box-shadow:inset 0 -3px 0 var(--shu)}
+.map{isolation:isolate;border:1px solid var(--line);overflow:hidden}
 #map{height:300px;width:100%}
-.pin{width:26px;height:26px;border-radius:4px;background:var(--red);color:#fff;border:2px solid #fff;font:800 13px/22px "Shippori Mincho",serif;text-align:center;box-shadow:0 1px 4px #0007}
-.pin.on{background:var(--ind);transform:scale(1.25)}
-ol{list-style:none;margin:0;padding:0}
-li,.card{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:12px;margin-bottom:8px}
-li.on{border-color:var(--red);box-shadow:0 0 0 2px var(--red)}
-.n{flex:0 0 28px;height:28px;border-radius:4px;background:var(--red);color:#fff;font:800 .9rem "Shippori Mincho",serif;display:grid;place-items:center}
+.pin{width:26px;height:26px;border-radius:50%;background:var(--ai);color:var(--onai);border:2px solid var(--bg);font:900 12px/22px sans-serif;text-align:center;box-shadow:0 1px 4px #0006}
+.pin.on{background:var(--shu);color:#fff;transform:scale(1.25)}
+#sum{font-size:.8rem;color:var(--sub);margin:8px 0 12px}
+.card{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);padding:12px;cursor:pointer}
+.card.on{border-color:var(--shu);box-shadow:0 0 0 1px var(--shu)}
+.n{flex:0 0 26px;height:26px;background:var(--shu);color:#fff;font-weight:900;font-size:.8rem;display:grid;place-items:center}
 .b{flex:1;min-width:0}
 .t{font-weight:700;overflow-wrap:anywhere}
-.hr,.sum,.sub{font-size:.85rem;color:var(--sub)}
-.sum{margin:0 0 10px}
-.go{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-size:.85rem}
-.go a,.lk{color:var(--ind);text-decoration:underline;text-underline-offset:3px;padding:4px 0}
-.leg{margin:-2px 0 8px 40px;font-size:.82rem;color:var(--sub);border-left:3px solid var(--gold);padding-left:10px}
-.pk{margin-top:6px;font-size:.82rem;color:var(--sub)}
-.pk b{color:var(--ink)}.pk div{padding:2px 0}
-#bar{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-#bar button{flex:1;border:0;background:none;color:var(--sub);font:inherit;font-weight:800;font-family:"Shippori Mincho",serif;font-size:1.05rem;letter-spacing:.1em;padding:12px 2px;cursor:pointer}
-#bar button[aria-selected="true"]{color:var(--red);box-shadow:inset 0 3px 0 var(--red)}
-.add{display:flex;gap:8px;margin:6px 0 12px}
-.add input{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink)}
-.btn{font:inherit;border:1px solid var(--ind);background:var(--ind);color:#f4efe4;border-radius:4px;padding:7px 14px;cursor:pointer}
-.btn.o{background:none;color:var(--ink);border-color:var(--line)}
-.it{align-items:center}.it.done .t{text-decoration:line-through;color:var(--sub)}
-.it input{width:20px;height:20px;accent-color:#c8372d}
-details{background:var(--card);border:1px solid var(--line);border-radius:4px;margin-bottom:8px}
-summary{padding:12px;cursor:pointer;list-style:none;display:flex;gap:10px;align-items:center}
-summary::-webkit-details-marker{display:none}
-summary::after{content:"＋";margin-left:auto;color:var(--red)}
-details[open] summary::after{content:"－"}
-.dt{padding:0 12px 12px;font-size:.92rem}
-.dt img{width:100%;border-radius:4px;margin:8px 0}
-.ok{color:var(--red);font-weight:800}
-.dt label{display:inline-block;margin:6px 10px 0 0}
-.empty{color:var(--sub);font-size:.9rem}
+.t.got{text-decoration:line-through;opacity:.55}
+.hr{font-size:.82rem;color:var(--sub)}
+.go{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;font-size:.85rem}
+.go a{color:var(--ai);text-underline-offset:3px;padding:4px 0}
+.leg{margin:0 0 0 12px;padding:7px 0 7px 22px;border-left:2px dotted var(--ai);font-size:.8rem;color:var(--ai)}
+a:focus-visible,button:focus-visible,.card:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
+.gh{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0}
+h2{margin:0;font-family:"Zen Old Mincho",serif;font-size:1.4rem;letter-spacing:.1em}
+h3{font-family:"Zen Old Mincho",serif;margin:18px 0 8px;font-size:1.05rem;border-left:4px solid var(--shu);padding-left:8px}
+.gi{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);padding:10px;margin-bottom:6px;cursor:pointer}
+.th{flex:0 0 54px;height:54px;background:var(--line);display:grid;place-items:center;overflow:hidden;font-weight:900;font-size:1.3rem;color:var(--ai)}
+.th img,.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.gi .hr{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ck{display:flex;gap:4px;align-items:center;font-size:.8rem;color:var(--sub);padding:8px 2px;cursor:pointer}
+.btn{font:inherit;font-weight:700;font-size:.9rem;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;cursor:pointer;display:inline-block}
+.btn.pri{background:var(--shu);border-color:var(--shu);color:#fff}
+.btn.danger{color:var(--shu);border-color:var(--shu)}
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:1000}
+#bar button{flex:1;background:none;border:0;font:inherit;font-weight:700;color:var(--sub);padding:14px 0;cursor:pointer}
+#bar button[aria-selected=true]{color:var(--shu);box-shadow:inset 0 3px 0 var(--shu)}
+.ov{position:fixed;inset:0;background:#0008;z-index:2000;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow:auto;padding:16px 18px calc(18px + env(safe-area-inset-bottom,0px));border-radius:12px 12px 0 0}
+.ph{height:200px;background:var(--line);display:grid;place-items:center;overflow:hidden;margin-bottom:10px;color:var(--sub)}
+label{display:block;font-size:.85rem;color:var(--sub)}
+input,textarea{width:100%;font:inherit;font-size:16px;padding:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:2px;margin:4px 0 10px}
+input[type=checkbox]{width:auto;margin:0}
+label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.acts{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
 <body>
-<header><h1>佐賀・大分</h1><p>九州 自駕の旅　五日間</p></header>
+<header><h1>旅の栞</h1><p>佐賀・大分　五日間の自駕旅</p></header>
 <main>
-<section id="p-trip">
-<nav id="tabs" role="tablist"></nav>
-<div style="height:10px"></div>
-<div class="map"><div id="map"></div></div>
-<div class="sum" id="sum"></div>
-<div id="view"></div>
+<section id="p-plan">
+ <nav id="days" role="tablist"></nav>
+ <div class="map"><div id="map"></div></div>
+ <div id="sum"></div>
+ <div id="view"></div>
 </section>
-<section id="p-park" hidden></section>
-<section id="p-gift" hidden></section>
-<section id="p-memo" hidden></section>
+<section id="p-gift" hidden>
+ <div class="gh"><div><h2>伴手禮</h2><div class="hr" id="gcount"></div></div><button class="btn pri" id="gadd">＋新增</button></div>
+ <div id="glist"></div>
+</section>
 </main>
-<div id="bar" role="tablist"><button data-p="trip" aria-selected="true">旅程</button><button data-p="park" aria-selected="false">駐車場</button><button data-p="gift" aria-selected="false">土産</button><button data-p="memo" aria-selected="false">覚書</button></div>
+<nav id="bar"></nav>
+<div id="ed" class="ov" hidden><div class="sheet">
+ <div class="ph" id="eph"></div>
+ <div style="margin-bottom:12px"><label class="btn" style="display:inline-block;color:var(--ink)">選擇／拍攝照片<input type="file" id="efile" accept="image/*" hidden></label> <button class="btn" id="erm">移除照片</button></div>
+ <label>名稱<input id="en"></label>
+ <label>地區<input id="ea" list="areas" placeholder="佐賀／大分／其他"></label><datalist id="areas"><option value="佐賀"><option value="大分"><option value="其他"></datalist>
+ <label>簡介<textarea id="ei" rows="4"></textarea></label>
+ <label class="row"><input type="checkbox" id="eg">已購買</label>
+ <div class="acts"><button class="btn danger" id="edel">刪除</button><button class="btn" id="ecl">取消</button><button class="btn pri" id="esv">儲存</button></div>
+</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-var D=[
+const D=[
 ["DAY 1",[["佐賀機場",33.1505692,130.3018177],["大魚神社海中鳥居",33.0312525,130.1777484],["祐德稻荷神社",33.073778,130.1079317,"境內可自由參拜；授與所約 8:30–16:30（依現場公告為準）"],["肥前浜宿酒蔵通り",33.0924071,130.1151793],["HOTEL R9 The Yard 佐賀鹿島",33.1206823,130.091994],["(株)村岡屋 鹿島店",33.1106366,130.0875857]]],
 ["DAY 2",[["武雄溫泉 樓門",33.1962371,130.0146614],["佐嘉平川屋（武雄溫泉 本店）",33.196222,130.0150825],["武雄市圖書館·歷史資料館",33.1890331,130.0236947,"圖書館 9:00–21:00，全年無休；歷史資料館 9:00–17:00"],["御船山樂園",33.1823029,130.0179788],["武雄 旅 書店",33.1960484,130.0229315],["youme Town 武雄",33.1887364,130.0251081],["中央飯店 武雄",33.1954133,130.0231871]]],
 ["DAY 3",[["湯布院駅前",33.2629542,131.3555275],["Siesta Organic Cafe",33.264324,131.3581301],["湯之坪街道",33.2673861,131.3645627],["金鱗湖",33.2666644,131.3690272],["Traditional Japanese inn Ryokan Hachisunoito",33.266614,131.3518159]]],
 ["DAY 4",[["九州自然動物園",33.3509251,131.4137658],["地獄蒸布丁 岡本屋",33.3180542,131.4526114],["別府地獄之旅",33.3158833,131.4696745],["Avatar印度餐廳",33.3151846,131.4723939],["地獄蒸工房 鐵輪",33.3154852,131.4762201],["別府塔",33.2817713,131.5059174],["Noodle Factory Life",33.2775997,131.5039761],["Umi no Hotel Hajime",33.2813065,131.507277]]],
 ["DAY 5",[["車站町一丁目 別府",33.2798442,131.5003895],["大分機場",33.4796632,131.7362008]]]
 ];
-var G=[
-["酥炸雞皮","大分炸雞","大分炸雞專賣店推出的雞皮零食，用國產雞與米油炸成，不加化學調味料，有鹽、醬油、柚子胡椒三種口味。","https://oita-karaage.com/"],
-["ZABIERU（ざびえる）","ZABIERU本舖","和洋合併的奶油點心，內餡分白餡與萊姆酒葡萄乾兩款，名稱紀念來到大分傳教的沙勿略，古書風包裝很適合送長輩。","http://www.zabieru.com"],
-["謎之鳥天仙貝","宝物産","把大分人愛吃的雞肉天婦羅做成仙貝，帶蒜香與醬油味，一片接一片停不下來。","https://takarabussan.official.ec/items/83900786"],
-["別府地獄咖哩","Hell Company","名字取自別府的地獄溫泉，是辛辣的咖哩味零食，很適合配冰啤酒。","https://www.hell-company.com/"],
-["地卵蜂蜜布丁","菊家","用久住山麓的紅雞蛋加蜂蜜製成，附一包焦糖漿可自己調甜度，曾拿過國際品質評鑑金獎。","https://eshop.kikuya-oita.net/ic/cat-006"],
-["BONDIA（ボンディア）","菊家","紅豆餡外包西式派皮，為紀念大分市與葡萄牙阿威羅締結姐妹市而創作，配紅茶或咖啡很合。","https://eshop.kikuya-oita.net/ic/cat-006"],
-["臼杵曲形煎餅","後藤製菓","有數百年歷史的臼杵名物，表面手刷薑汁糖蜜形成木紋，有薄燒曲面、黑糖薄燒、平型厚燒三種。","https://usukisenbei.com/gotoseika_products/"],
-["佐伯胡麻醬（ごまだし）","漁村女性グループ めばる","把小魚磨碎製成的萬用調味料，有鯛魚、鰺魚、鱛魚三種口味，可煮麵、做飯糰、泡茶漬。","https://www.facebook.com/gomadasi/"],
-["草莓醋","MUROOONO","由布市庄內町的草莓農家用賣相較差但新鮮甜美的草莓製作，可兌水或配優格、冰淇淋，不含合成甘味料與防腐劑。","https://muroonodoor.com/"],
-["湯之花入浴劑","岡本屋","明礬溫泉以傳統製法採集地獄蒸氣結晶製成，製法是國家指定的重要無形民俗文化財。行程第 4 天的岡本屋就是這家。","https://jigoku-prin.shop-pro.jp/"]
-];
-var $=function(i){return document.getElementById(i)},tabs=$("tabs"),view=$("view"),cur=0,sel=-1,map,mk=[],routeL,parkL,routes={},parks={},PG={};
-function q(s){return encodeURIComponent(s)}
-function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
-function J(k,v){try{if(v===undefined){var x=JSON.parse(localStorage.getItem(k));return x}localStorage.setItem(k,JSON.stringify(v))}catch(e){}return v===undefined?null:v}
-function icon(i,on){return L.divIcon({className:"",html:'<div class="pin'+(on?' on':'')+'">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]})}
-function fmt(sec){var m=Math.round(sec/60);return m>=60?Math.floor(m/60)+" 小時 "+(m%60)+" 分":m+" 分"}
-function initMap(){
-  map=L.map("map");
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map);
-  parkL=L.layerGroup().addTo(map);routeL=L.layerGroup().addTo(map);
+const DAYN=["一日目","二日目","三日目","四日目","五日目"];
+const TABS=[["plan","旅程"],["gift","伴手禮"]];
+const DEF=[
+["丸ぼうろ","佐賀","佐賀的傳統烘焙點心，口感鬆脆、蛋香樸實，源自南蠻菓子的流傳。"],
+["小城羊羹","佐賀","表面帶一層薄糖殼、內裡綿密的紅豆羊羹，是小城的代表名產，行程中的村岡屋以羊羹聞名。"],
+["嬉野茶","佐賀","嬉野以圓潤柔和的玉綠茶聞名，茶葉輕巧好攜帶，適合送禮。"],
+["有田燒","佐賀","日本具代表性的瓷器，杯盤小物都適合當紀念品，記得請店家用緩衝材包好。"],
+["佐賀海苔","佐賀","佐賀有明海一帶是海苔重要產地，包裝輕薄，送禮自用都方便。"],
+["地獄蒸しプリン","大分","別府用溫泉蒸氣蒸出的布丁，蛋味濃、口感紮實，岡本屋是行程中的名店，建議現場品嚐。"],
+["湯の花","大分","別府明礬溫泉的湯之花，加在浴缸裡就能在家重現溫泉氛圍。"],
+["ざびえる","大分","大分知名洋菓子，酥皮包著奶油餡，名字取自傳教士沙勿略。"],
+["かぼす製品","大分","臭橙（カボス）是大分特產，有果醋、果汁、調味料等多種加工品。"],
+["麥燒酎","大分","大分以麥燒酎聞名，常見品牌有いいちこ、二階堂等；攜帶酒類請留意航空與入境規定。"]];
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let cur=0,sel=-1,map,mk=[],base,drive;const R={},bad={};
+const pin=(i,on)=>L.divIcon({className:"",html:`<div class="pin${on?" on":""}">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]});
+const fmt=s=>{const m=Math.round(s/60);return m>=60?Math.floor(m/60)+" 小時 "+(m%60)+" 分":m+" 分"};
+function initMap(){map=L.map("map");L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map)}
+function list(){
+ const pts=D[cur][1],r=R[cur];let h="";
+ pts.forEach((p,i)=>{
+  h+=`<div class="card${i===sel?" on":""}" data-i="${i}" tabindex="0"><span class="n">${i+1}</span><div class="b"><div class="t">${esc(p[0])}</div>${p[3]?`<div class="hr">營業時間　${esc(p[3])}</div>`:""}<div class="go"><a href="https://maps.apple.com/?ll=${p[1]},${p[2]}&q=${encodeURIComponent(p[0])}">Apple 地圖</a><a href="https://www.google.com/maps/search/?api=1&query=${p[1]},${p[2]}" target="_blank" rel="noopener">Google 地圖</a><a href="https://www.google.com/maps/search/${encodeURIComponent("駐車場")}/@${p[1]},${p[2]},17z" target="_blank" rel="noopener">附近停車場</a></div></div></div>`;
+  if(i<pts.length-1){const l=r&&r.legs[i];h+=`<div class="leg">${l?`↓ 自駕約 ${fmt(l.duration)}・${(l.distance/1000).toFixed(1)} km`:"↓"}</div>`}
+ });
+ $("#view").innerHTML=h;
+}
+function summary(){const r=R[cur];$("#sum").textContent=r?`全日自駕約 ${fmt(r.duration)}・${Math.round(r.distance/1000)} km（不含停留，實際依路況與收費道路而定）`:bad[cur]?"路線暫時無法取得，需要網路連線":"路線計算中…"}
+function drawRoute(){
+ const d=cur;
+ const show=r=>{if(d!==cur)return;drive&&drive.remove();base&&base.remove();drive=L.polyline(r.geometry.coordinates.map(c=>[c[1],c[0]]),{color:"#c9432e",weight:4,opacity:.85}).addTo(map);list();summary()};
+ if(R[d])return show(R[d]);
+ const c=D[d][1].map(p=>p[2]+","+p[1]).join(";");
+ fetch("https://router.project-osrm.org/route/v1/driving/"+c+"?overview=full&geometries=geojson").then(r=>r.json()).then(j=>{if(j.code!=="Ok")throw 0;R[d]=j.routes[0];delete bad[d];show(R[d])}).catch(()=>{bad[d]=1;if(d===cur)summary()});
 }
 function drawMap(){
-  mk.forEach(function(m){m.remove()});mk=[];parkL.clearLayers();routeL.clearLayers();
-  var pts=D[cur][1],ll=pts.map(function(p){return [p[1],p[2]]});
-  routeL.addLayer(L.polyline(ll,{color:"#c8372d",weight:3,opacity:.6,dashArray:"6 6"}));
-  pts.forEach(function(p,i){var m=L.marker(ll[i],{icon:icon(i,false)}).addTo(map);m.on("click",function(){pick(i,false)});mk.push(m)});
-  map.fitBounds(L.latLngBounds(ll).pad(.2),{maxZoom:15});
-  setTimeout(function(){map.invalidateSize()},50);
-}
-function list(){
-  var pts=D[cur][1],h='<ol>';
-  pts.forEach(function(p,i){
-    h+='<li data-i="'+i+'" tabindex="0"><span class="n">'+(i+1)+'</span><div class="b"><div class="t">'+esc(p[0])+'</div>'+(p[3]?'<div class="hr">營業時間　'+esc(p[3])+'</div>':'')+'<div class="go"><a href="https://maps.apple.com/?ll='+p[1]+','+p[2]+'&q='+q(p[0])+'">Apple 地圖</a><a href="https://www.google.com/maps/search/?api=1&query='+p[1]+','+p[2]+'" target="_blank" rel="noopener">Google 地圖</a></div><div class="pk" id="pk'+i+'"></div></div></li>';
-    if(i<pts.length-1)h+='<div class="leg" id="leg'+i+'">自駕時間計算中…</div>'});
-  view.innerHTML=h+'</ol><p class="hr">未列營業時間的景點，請點 Google 地圖查看最新時間。</p>';
-}
-function applyRoute(d){
-  var r=routes[d];if(d!==cur||!r)return;
-  routeL.clearLayers();
-  routeL.addLayer(L.geoJSON(r.geometry,{style:{color:"#2c5aa0",weight:5,opacity:.85}}));
-  r.legs.forEach(function(l,i){var e=$("leg"+i);if(e)e.textContent="自駕 約 "+fmt(l.duration)+"・"+(l.distance/1000).toFixed(1)+" km"});
-  $("sum").textContent="當日自駕合計約 "+fmt(r.duration)+"・"+(r.distance/1000).toFixed(0)+" km（不含停留時間）";
-}
-function loadRoute(d){
-  var pts=D[d][1];$("sum").textContent="";
-  if(routes[d])return applyRoute(d);
-  var u="https://router.project-osrm.org/route/v1/driving/"+pts.map(function(p){return p[2]+","+p[1]}).join(";")+"?overview=full&geometries=geojson";
-  fetch(u).then(function(r){return r.json()}).then(function(j){if(j.code!=="Ok")throw 0;routes[d]=j.routes[0];applyRoute(d)})
-  .catch(function(){if(d===cur)document.querySelectorAll(".leg").forEach(function(e){e.textContent="自駕時間暫時無法取得，請用地圖導航查看"})});
-}
-/* 停車場 */
-function dist(a,b,c,d){var r=Math.PI/180,x=(c-a)*r,y=(d-b)*r*Math.cos(a*r);return Math.sqrt(x*x+y*y)*6371000}
-function fetchDay(d){
-  if(parks[d])return Promise.resolve(parks[d]);
-  var c=J("pk");if(c&&c[d]){parks[d]=c[d];return Promise.resolve(c[d])}
-  var pts=D[d][1],qs='[out:json][timeout:25];('+pts.map(function(p){return 'nwr["amenity"="parking"](around:400,'+p[1]+','+p[2]+');'}).join("")+');out center tags;';
-  function go(base){return fetch(base+"?data="+q(qs)).then(function(r){if(!r.ok)throw 0;return r.json()})}
-  return go("https://overpass-api.de/api/interpreter").catch(function(){return go("https://overpass.kumi.systems/api/interpreter")}).then(function(j){
-    var all=j.elements.filter(function(x){return (x.tags||{}).access!=="private"}).map(function(x){var t=x.tags||{};return {la:x.lat||(x.center&&x.center.lat),lo:x.lon||(x.center&&x.center.lon),n:t.name||"停車場",f:t.fee==="yes"?"收費":t.fee==="no"?"免費":"",c:t.capacity||""}}).filter(function(x){return x.la});
-    var res=pts.map(function(p){return all.map(function(k){return {la:k.la,lo:k.lo,n:k.n,f:k.f,c:k.c,m:Math.round(dist(p[1],p[2],k.la,k.lo))}}).filter(function(k){return k.m<=400}).sort(function(a,b){return a.m-b.m}).slice(0,4)});
-    parks[d]=res;var c2=J("pk")||{};c2[d]=res;J("pk",c2);return res});
-}
-function lotHTML(k){return '<div>P '+esc(k.n)+'　'+k.m+' m'+(k.f?'　'+k.f:'')+(k.c?'　'+esc(k.c)+' 格':'')+'　<a class="lk" href="https://www.google.com/maps/dir/?api=1&destination='+k.la+','+k.lo+'&travelmode=driving" target="_blank" rel="noopener">導航</a></div>'}
-function showPark(i,arr){
-  var e=$("pk"+i);if(!e)return;parkL.clearLayers();
-  if(!arr.length){e.textContent="400 m 內沒有地圖資料中的停車場，請改用 Google 地圖搜尋「停車場」。";return}
-  e.innerHTML='<b>附近停車場（OpenStreetMap，僅供參考）</b>'+arr.map(lotHTML).join("");
-  arr.forEach(function(k){L.circleMarker([k.la,k.lo],{radius:8,color:"#fff",weight:2,fillColor:"#2c5aa0",fillOpacity:1}).bindTooltip("P "+k.n).addTo(parkL)});
+ mk.forEach(m=>m.remove());mk=[];base&&base.remove();drive&&drive.remove();
+ const ll=D[cur][1].map(p=>[p[1],p[2]]);
+ base=L.polyline(ll,{color:"#c9432e",weight:2,opacity:.5,dashArray:"5 6"}).addTo(map);
+ ll.forEach((x,i)=>{const m=L.marker(x,{icon:pin(i,false)}).addTo(map);m.on("click",()=>pick(i,false));mk.push(m)});
+ map.fitBounds(L.latLngBounds(ll).pad(.2),{maxZoom:15});
+ setTimeout(()=>map.invalidateSize(),60);
+ drawRoute();
 }
 function pick(i,pan){
-  sel=i;
-  view.querySelectorAll("li").forEach(function(l,k){l.classList.toggle("on",k===i)});
-  mk.forEach(function(m,k){m.setIcon(icon(k,k===i))});
-  var p=D[cur][1][i],d=cur;
-  if(pan)map.flyTo([p[1],p[2]],16,{duration:.6});
-  else{var l=view.querySelectorAll("li")[i];if(l)l.scrollIntoView({block:"nearest",behavior:"smooth"})}
-  var e=$("pk"+i);if(e&&!parks[d])e.textContent="查詢附近停車場…";
-  fetchDay(d).then(function(r){if(sel===i&&cur===d)showPark(i,r[i])}).catch(function(){if(sel===i&&e)e.textContent="停車場資料暫時無法取得，請改用 Google 地圖搜尋「停車場」。"});
+ sel=i;const cs=document.querySelectorAll("#view .card");
+ cs.forEach((c,k)=>c.classList.toggle("on",k===i));
+ mk.forEach((m,k)=>m.setIcon(pin(k,k===i)));
+ const p=D[cur][1][i];
+ if(pan){map.flyTo([p[1],p[2]],Math.max(map.getZoom(),15),{duration:.6});$("#map").scrollIntoView({block:"center",behavior:"smooth"})}
+ else cs[i].scrollIntoView({block:"nearest",behavior:"smooth"});
 }
-function draw(){
-  tabs.innerHTML=D.map(function(d,i){return '<button role="tab" aria-selected="'+(i===cur)+'" data-d="'+i+'">'+d[0]+'</button>'}).join("");
-  sel=-1;list();drawMap();loadRoute(cur);
+function days(){$("#days").innerHTML=DAYN.map((n,i)=>`<button role="tab" aria-selected="${i===cur}" data-d="${i}">${n}</button>`).join("")}
+function setDay(i){cur=i;sel=-1;try{localStorage.setItem("day",i)}catch(e){}days();list();summary();drawMap();}
+$("#days").onclick=e=>{const b=e.target.closest("button");if(b)setDay(+b.dataset.d)};
+$("#view").onclick=e=>{if(e.target.closest("a"))return;const c=e.target.closest(".card");if(c)pick(+c.dataset.i,true)};
+function tab(k){
+ TABS.forEach(([id])=>{$("#p-"+id).hidden=id!==k});
+ document.querySelectorAll("#bar button").forEach(b=>b.setAttribute("aria-selected",b.dataset.k===k));
+ if(k==="plan")setTimeout(()=>map.invalidateSize(),50);
+ window.scrollTo(0,0);
 }
-tabs.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;cur=+b.dataset.d;J("day",cur);draw();window.scrollTo(0,0)});
-view.addEventListener("click",function(e){
-  if(e.target.closest("a"))return;
-  var t=e.target.closest("[data-i]");if(t){pick(+t.dataset.i,true);$("map").scrollIntoView({block:"center",behavior:"smooth"})}});
-/* 駐車場頁 */
-function parkPage(){
-  var h='<h2>駐車場</h2><p class="sub">出發前先按「查詢」載入，資料會存在手機裡，到現場沒網路也能看。資料來自 OpenStreetMap，可能不完整，請以現場標示為準。</p><p><button class="btn" data-a="all">查詢全部</button></p>';
-  D.forEach(function(d,di){
-    h+='<h2 class="mi" style="margin-top:18px">'+d[0]+'</h2>';
-    var r=parks[di]||(J("pk")||{})[di];
-    if(!r){h+='<p><button class="btn o" data-a="day" data-d="'+di+'">查詢 '+d[0]+'</button></p>'}
-    else d[1].forEach(function(p,i){h+='<div class="card"><span class="n">'+(i+1)+'</span><div class="b"><div class="t">'+esc(p[0])+'</div><div class="pk">'+(r[i]&&r[i].length?r[i].map(lotHTML).join(""):'<div>400 m 內無資料，請用 <a class="lk" href="https://www.google.com/maps/search/'+q("停車場")+'/@'+p[1]+','+p[2]+',17z" target="_blank" rel="noopener">Google 地圖</a> 搜尋</div>')+'</div></div></div>'});
-  });
-  $("p-park").innerHTML=h;
+$("#bar").innerHTML=TABS.map(([k,n])=>`<button data-k="${k}">${n}</button>`).join("");
+$("#bar").onclick=e=>{const b=e.target.closest("button");if(b)tab(b.dataset.k)};
+
+let G;try{G=JSON.parse(localStorage.getItem("gifts"))}catch(e){}
+if(!Array.isArray(G))G=DEF.map((x,i)=>({id:"d"+i,name:x[0],area:x[1],intro:x[2],photo:"",got:false}));
+const save=()=>{try{localStorage.setItem("gifts",JSON.stringify(G))}catch(e){alert("儲存空間不足，請刪除一些照片後再試")}};
+function gifts(){
+ const areas=[...new Set(G.map(g=>g.area||"其他"))];
+ $("#glist").innerHTML=G.length?areas.map(a=>`<h3>${esc(a)}</h3>`+G.filter(g=>(g.area||"其他")===a).map(g=>`<div class="gi" data-id="${g.id}"><div class="th">${g.photo?`<img src="${g.photo}" alt="">`:esc(g.name[0])}</div><div class="b"><div class="t${g.got?" got":""}">${esc(g.name)}</div><div class="hr">${esc(g.intro)}</div></div><label class="ck"><input type="checkbox" data-got="${g.id}" ${g.got?"checked":""}>已買</label></div>`).join("")).join(""):'<p class="hr">清單是空的，按右上「＋新增」加入第一個吧。</p>';
+ $("#gcount").textContent=`已買 ${G.filter(g=>g.got).length} / ${G.length}`;
 }
-$("p-park").addEventListener("click",function(e){
-  var b=e.target.closest("[data-a]");if(!b)return;b.disabled=true;
-  var ds=b.dataset.a==="all"?D.map(function(x,i){return i}):[+b.dataset.d],ch=Promise.resolve();
-  b.textContent="查詢中…";
-  ds.forEach(function(d){ch=ch.then(function(){return fetchDay(d)}).then(function(){parkPage();return new Promise(function(r){setTimeout(r,1200)})}).catch(function(){})});
-  ch.then(parkPage);
-});
-/* 土産頁 與 覚書頁 */
-var LP={gift:"自訂項目",memo:"覚書"},store={};
-function ld(k){return J("lp-"+k)||store[k]||[]}
-function sv(k,a){store[k]=a;J("lp-"+k,a)}
-function custom(k){
-  var a=ld(k);
-  return '<h2 style="margin-top:20px">'+LP[k]+'</h2><div class="add"><input id="in-'+k+'" placeholder="新增項目" maxlength="80"><button class="btn" data-a="add">新增</button></div>'+
-  (a.length?'<ol>'+a.map(function(x,i){return '<li class="it'+(x.d?' done':'')+'"><input type="checkbox" data-a="tg" data-i="'+i+'"'+(x.d?' checked':'')+'><div class="b"><div class="t">'+esc(x.t)+'</div></div><button class="btn o" data-a="rm" data-i="'+i+'">刪除</button></li>'}).join("")+'</ol>':'<p class="empty">還沒有項目。</p>');
-}
-function giftPage(){
-  var bought=J("gb")||{},ph=J("gp")||{},open=PG.open;
-  var h='<h2>大分の土産</h2><p class="sub">點開看介紹。資料整理自 <a class="lk" href="https://kyushu.letsgojp.com/archives/539884/" target="_blank" rel="noopener">樂吃購！日本 九州版</a>。</p>';
-  G.forEach(function(g,i){
-    h+='<details data-g="'+i+'"'+(open===i?' open':'')+'><summary><span class="n">'+(i+1)+'</span><div class="b"><div class="t">'+esc(g[0])+(bought[i]?'　<span class="ok">已購</span>':'')+'</div><div class="sub">'+esc(g[1])+'</div></div></summary><div class="dt"><div>'+esc(g[2])+'</div>'+
-    (ph[i]?'<img src="'+ph[i]+'" alt="'+esc(g[0])+'">':'')+
-    '<div class="go"><a href="'+g[3]+'" target="_blank" rel="noopener">官網／購買</a><a href="https://www.google.com/search?tbm=isch&q='+q(g[0]+" "+g[1])+'" target="_blank" rel="noopener">看商品照片</a></div>'+
-    '<label><input type="checkbox" data-a="bt" data-i="'+i+'"'+(bought[i]?' checked':'')+'> 已購買</label><label class="lk">'+(ph[i]?'更換':'加入')+'我的照片<input type="file" accept="image/*" data-a="ph" data-i="'+i+'" hidden></label></div></details>'});
-  $("p-gift").innerHTML=h+custom("gift");
-}
-function page(k){if(k==="gift")giftPage();else if(k==="memo")$("p-memo").innerHTML=custom("memo");else if(k==="park")parkPage()}
-["gift","memo"].forEach(function(k){
-  var el=$("p-"+k);
-  el.addEventListener("toggle",function(e){if(e.target.dataset&&e.target.dataset.g!==undefined&&e.target.open)PG.open=+e.target.dataset.g},true);
-  el.addEventListener("click",function(e){
-    var b=e.target.closest("[data-a]");if(!b||b.tagName==="INPUT"&&b.type==="file")return;
-    var a=ld(k),i=+b.dataset.i,t=b.dataset.a;
-    if(t==="bt"){var m=J("gb")||{};m[i]=b.checked?1:0;J("gb",m);PG.open=i;return giftPage()}
-    if(t==="add"){var v=$("in-"+k).value.trim();if(v)a.push({t:v,d:0})}
-    else if(t==="tg")a[i].d=a[i].d?0:1;
-    else if(t==="rm")a.splice(i,1);else return;
-    sv(k,a);page(k)});
-  el.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.type==="text"){var v=e.target.value.trim();if(v){var a=ld(k);a.push({t:v,d:0});sv(k,a);page(k)}}});
-});
-$("p-gift").addEventListener("change",function(e){
-  var f=e.target;if(f.dataset.a!=="ph"||!f.files[0])return;
-  var i=+f.dataset.i,r=new FileReader();
-  r.onload=function(){var im=new Image();im.onload=function(){
-    var s=Math.min(1,640/im.width),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;
-    c.getContext("2d").drawImage(im,0,0,c.width,c.height);
-    var m=J("gp")||{};m[i]=c.toDataURL("image/jpeg",.7);J("gp",m);PG.open=i;giftPage()};im.src=r.result};
-  r.readAsDataURL(f.files[0]);
-});
-$("bar").addEventListener("click",function(e){
-  var b=e.target.closest("button");if(!b)return;var p=b.dataset.p;
-  document.querySelectorAll("#bar button").forEach(function(x){x.setAttribute("aria-selected",x===b)});
-  ["trip","park","gift","memo"].forEach(function(k){$("p-"+k).hidden=k!==p});
-  if(p!=="trip")page(p);else setTimeout(function(){map.invalidateSize()},50);
-  window.scrollTo(0,0);
-});
-var s0=J("day");if(s0>=0&&s0<D.length)cur=+s0;
-initMap();draw();
+$("#glist").onclick=e=>{if(e.target.closest(".ck"))return;const r=e.target.closest(".gi");if(r)openEd(r.dataset.id)};
+$("#glist").onchange=e=>{const id=e.target.dataset.got;if(!id)return;G.find(x=>x.id===id).got=e.target.checked;save();gifts()};
+let eid=null,ephoto="";
+function showPh(){$("#eph").innerHTML=ephoto?`<img src="${ephoto}" alt="">`:"<span>尚無照片</span>"}
+function openEd(id){eid=id;const g=id?G.find(x=>x.id===id):{name:"",area:"",intro:"",photo:"",got:false};ephoto=g.photo;$("#en").value=g.name;$("#ea").value=g.area;$("#ei").value=g.intro;$("#eg").checked=g.got;$("#edel").hidden=!id;showPh();$("#ed").hidden=false}
+function shrink(f,cb){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,720/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.72))};im.src=r.result};r.readAsDataURL(f)}
+$("#efile").onchange=e=>{const f=e.target.files[0];if(f)shrink(f,d=>{ephoto=d;showPh()});e.target.value=""};
+$("#erm").onclick=()=>{ephoto="";showPh()};
+$("#gadd").onclick=()=>openEd(null);
+$("#ecl").onclick=()=>{$("#ed").hidden=true};
+$("#esv").onclick=()=>{const n=$("#en").value.trim();if(!n){$("#en").focus();return}const o={name:n,area:$("#ea").value.trim(),intro:$("#ei").value.trim(),photo:ephoto,got:$("#eg").checked};if(eid)Object.assign(G.find(x=>x.id===eid),o);else G.push({id:"u"+Date.now(),...o});save();$("#ed").hidden=true;gifts()};
+$("#edel").onclick=()=>{if(confirm("確定刪除這個項目？")){G=G.filter(x=>x.id!==eid);save();$("#ed").hidden=true;gifts()}};
+
+try{const s=+localStorage.getItem("day");if(s>=0&&s<D.length)cur=s}catch(e){}
+initMap();gifts();setDay(cur);tab("plan");
 </script>
 </body>
 </html>
