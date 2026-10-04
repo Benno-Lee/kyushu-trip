@@ -59,6 +59,8 @@ label{display:block;font-size:.85rem;color:var(--sub)}
 input,textarea{width:100%;font:inherit;font-size:16px;padding:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:2px;margin:4px 0 10px}
 input[type=checkbox]{width:auto;margin:0}
 label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.gp{font-size:.8rem;color:var(--ai);text-underline-offset:3px;display:inline-block;padding:2px 0}
+.gi .hr.mt{white-space:pre-line;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;color:var(--ink)}
 .acts{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
@@ -75,6 +77,10 @@ label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
  <div class="gh"><div><h2>伴手禮</h2><div class="hr" id="gcount"></div></div><button class="btn pri" id="gadd">＋新增</button></div>
  <div id="glist"></div>
 </section>
+<section id="p-memo" hidden>
+ <div class="gh"><div><h2>備忘錄</h2><div class="hr">行程外的提醒、預約、想問的事都記這裡</div></div><button class="btn pri" id="madd">＋新增</button></div>
+ <div id="mlist" style="margin-top:12px"></div>
+</section>
 </main>
 <nav id="bar"></nav>
 <div id="ed" class="ov" hidden><div class="sheet">
@@ -84,7 +90,13 @@ label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
  <label>地區<input id="ea" list="areas" placeholder="佐賀／大分／其他"></label><datalist id="areas"><option value="佐賀"><option value="大分"><option value="其他"></datalist>
  <label>簡介<textarea id="ei" rows="4"></textarea></label>
  <label class="row"><input type="checkbox" id="eg">已購買</label>
+ <div style="margin-bottom:12px"><button class="btn" id="egp">在 Google 圖片看這個項目的照片</button></div>
  <div class="acts"><button class="btn danger" id="edel">刪除</button><button class="btn" id="ecl">取消</button><button class="btn pri" id="esv">儲存</button></div>
+</div></div>
+<div id="mo" class="ov" hidden><div class="sheet">
+ <label>標題<input id="mti" placeholder="例如：租車取車時間"></label>
+ <label>內容<textarea id="mbo" rows="9"></textarea></label>
+ <div class="acts"><button class="btn danger" id="mdel">刪除</button><button class="btn" id="mcl">取消</button><button class="btn pri" id="msv">儲存</button></div>
 </div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -96,7 +108,7 @@ const D=[
 ["DAY 5",[["車站町一丁目 別府",33.2798442,131.5003895],["大分機場",33.4796632,131.7362008]]]
 ];
 const DAYN=["一日目","二日目","三日目","四日目","五日目"];
-const TABS=[["plan","旅程"],["gift","伴手禮"]];
+const TABS=[["plan","旅程"],["gift","伴手禮"],["memo","備忘錄"]];
 const DEF=[
 ["丸ぼうろ","佐賀","佐賀的傳統烘焙點心，口感鬆脆、蛋香樸實，源自南蠻菓子的流傳。"],
 ["小城羊羹","佐賀","表面帶一層薄糖殼、內裡綿密的紅豆羊羹，是小城的代表名產，行程中的村岡屋以羊羹聞名。"],
@@ -163,12 +175,13 @@ $("#bar").onclick=e=>{const b=e.target.closest("button");if(b)tab(b.dataset.k)};
 let G;try{G=JSON.parse(localStorage.getItem("gifts"))}catch(e){}
 if(!Array.isArray(G))G=DEF.map((x,i)=>({id:"d"+i,name:x[0],area:x[1],intro:x[2],photo:"",got:false}));
 const save=()=>{try{localStorage.setItem("gifts",JSON.stringify(G))}catch(e){alert("儲存空間不足，請刪除一些照片後再試")}};
+const gimg=g=>"https://www.google.com/search?tbm=isch&q="+encodeURIComponent((g.name||"")+" "+(g.area||""));
 function gifts(){
  const areas=[...new Set(G.map(g=>g.area||"其他"))];
- $("#glist").innerHTML=G.length?areas.map(a=>`<h3>${esc(a)}</h3>`+G.filter(g=>(g.area||"其他")===a).map(g=>`<div class="gi" data-id="${g.id}"><div class="th">${g.photo?`<img src="${g.photo}" alt="">`:esc(g.name[0])}</div><div class="b"><div class="t${g.got?" got":""}">${esc(g.name)}</div><div class="hr">${esc(g.intro)}</div></div><label class="ck"><input type="checkbox" data-got="${g.id}" ${g.got?"checked":""}>已買</label></div>`).join("")).join(""):'<p class="hr">清單是空的，按右上「＋新增」加入第一個吧。</p>';
+ $("#glist").innerHTML=G.length?areas.map(a=>`<h3>${esc(a)}</h3>`+G.filter(g=>(g.area||"其他")===a).map(g=>`<div class="gi" data-id="${g.id}"><div class="th">${g.photo?`<img src="${g.photo}" alt="">`:esc(g.name[0])}</div><div class="b"><div class="t${g.got?" got":""}">${esc(g.name)}</div><div class="hr">${esc(g.intro)}</div><a class="gp" href="${gimg(g)}" target="_blank" rel="noopener">看照片（Google 圖片）</a></div><label class="ck"><input type="checkbox" data-got="${g.id}" ${g.got?"checked":""}>已買</label></div>`).join("")).join(""):'<p class="hr">清單是空的，按右上「＋新增」加入第一個吧。</p>';
  $("#gcount").textContent=`已買 ${G.filter(g=>g.got).length} / ${G.length}`;
 }
-$("#glist").onclick=e=>{if(e.target.closest(".ck"))return;const r=e.target.closest(".gi");if(r)openEd(r.dataset.id)};
+$("#glist").onclick=e=>{if(e.target.closest(".ck,a"))return;const r=e.target.closest(".gi");if(r)openEd(r.dataset.id)};
 $("#glist").onchange=e=>{const id=e.target.dataset.got;if(!id)return;G.find(x=>x.id===id).got=e.target.checked;save();gifts()};
 let eid=null,ephoto="";
 function showPh(){$("#eph").innerHTML=ephoto?`<img src="${ephoto}" alt="">`:"<span>尚無照片</span>"}
@@ -177,12 +190,24 @@ function shrink(f,cb){const r=new FileReader();r.onload=()=>{const im=new Image(
 $("#efile").onchange=e=>{const f=e.target.files[0];if(f)shrink(f,d=>{ephoto=d;showPh()});e.target.value=""};
 $("#erm").onclick=()=>{ephoto="";showPh()};
 $("#gadd").onclick=()=>openEd(null);
+$("#egp").onclick=()=>{const n=$("#en").value.trim();if(!n){$("#en").focus();return}window.open(gimg({name:n,area:$("#ea").value}),"_blank","noopener")};
 $("#ecl").onclick=()=>{$("#ed").hidden=true};
 $("#esv").onclick=()=>{const n=$("#en").value.trim();if(!n){$("#en").focus();return}const o={name:n,area:$("#ea").value.trim(),intro:$("#ei").value.trim(),photo:ephoto,got:$("#eg").checked};if(eid)Object.assign(G.find(x=>x.id===eid),o);else G.push({id:"u"+Date.now(),...o});save();$("#ed").hidden=true;gifts()};
 $("#edel").onclick=()=>{if(confirm("確定刪除這個項目？")){G=G.filter(x=>x.id!==eid);save();$("#ed").hidden=true;gifts()}};
 
+let M;try{M=JSON.parse(localStorage.getItem("memos"))}catch(e){}if(!Array.isArray(M))M=[];
+const saveM=()=>{try{localStorage.setItem("memos",JSON.stringify(M))}catch(e){alert("儲存空間不足，請刪除一些備忘後再試")}};
+function memos(){$("#mlist").innerHTML=M.length?M.map(m=>`<div class="gi" data-id="${m.id}"><div class="b"><div class="t">${esc(m.title||"（無標題）")}</div><div class="hr mt">${esc(m.body)}</div><div class="hr">${esc(m.at)}</div></div></div>`).join(""):'<p class="hr">還沒有備忘，按右上「＋新增」寫下第一則。</p>'}
+let mid=null;
+function openM(id){mid=id;const m=id?M.find(x=>x.id===id):{title:"",body:""};$("#mti").value=m.title;$("#mbo").value=m.body;$("#mdel").hidden=!id;$("#mo").hidden=false}
+$("#madd").onclick=()=>openM(null);
+$("#mlist").onclick=e=>{const r=e.target.closest(".gi");if(r)openM(r.dataset.id)};
+$("#mcl").onclick=()=>{$("#mo").hidden=true};
+$("#msv").onclick=()=>{const t=$("#mti").value.trim(),b=$("#mbo").value.trim();if(!t&&!b){$("#mti").focus();return}const at=new Date().toLocaleString("zh-TW",{hour12:false,month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});if(mid)Object.assign(M.find(x=>x.id===mid),{title:t,body:b,at});else M.unshift({id:"m"+Date.now(),title:t,body:b,at});saveM();$("#mo").hidden=true;memos()};
+$("#mdel").onclick=()=>{if(confirm("確定刪除這則備忘？")){M=M.filter(x=>x.id!==mid);saveM();$("#mo").hidden=true;memos()}};
+
 try{const s=+localStorage.getItem("day");if(s>=0&&s<D.length)cur=s}catch(e){}
-initMap();gifts();setDay(cur);tab("plan");
+initMap();gifts();memos();setDay(cur);tab("plan");
 </script>
 </body>
 </html>
