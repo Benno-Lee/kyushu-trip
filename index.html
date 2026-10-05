@@ -19,9 +19,9 @@ header{padding:22px 18px 6px;display:flex;align-items:baseline;gap:12px;max-widt
 h1{margin:0;font-family:"Zen Old Mincho","Noto Serif TC",serif;font-weight:900;font-size:1.9rem;letter-spacing:.12em}
 header p{margin:0;color:var(--sub);font-size:.85rem}
 main{max-width:640px;margin:0 auto;padding:0 18px}
-#days{display:flex;gap:6px;overflow-x:auto;padding:10px 0}
-#days button{flex:0 0 auto;background:var(--card);color:var(--sub);border:1px solid var(--line);font:inherit;font-weight:700;padding:7px 14px;border-radius:2px;cursor:pointer}
-#days button[aria-selected=true]{color:var(--ink);border-color:var(--shu);box-shadow:inset 0 -3px 0 var(--shu)}
+#days,.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0}
+#days button,.chips button{flex:0 0 auto;background:var(--card);color:var(--sub);border:1px solid var(--line);font:inherit;font-weight:700;padding:7px 14px;border-radius:2px;cursor:pointer}
+#days button[aria-selected=true],.chips button[aria-selected=true]{color:var(--ink);border-color:var(--shu);box-shadow:inset 0 -3px 0 var(--shu)}
 .map{isolation:isolate;border:1px solid var(--line);overflow:hidden}
 #map{height:300px;width:100%}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--ai);color:var(--onai);border:2px solid var(--bg);font:900 12px/22px sans-serif;text-align:center;box-shadow:0 1px 4px #0006}
@@ -56,11 +56,21 @@ h3{font-family:"Zen Old Mincho",serif;margin:18px 0 8px;font-size:1.05rem;border
 .sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow:auto;padding:16px 18px calc(18px + env(safe-area-inset-bottom,0px));border-radius:12px 12px 0 0}
 .ph{height:200px;background:var(--line);display:grid;place-items:center;overflow:hidden;margin-bottom:10px;color:var(--sub)}
 label{display:block;font-size:.85rem;color:var(--sub)}
-input,textarea{width:100%;font:inherit;font-size:16px;padding:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:2px;margin:4px 0 10px}
+input,textarea,select{width:100%;font:inherit;font-size:16px;padding:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:2px;margin:4px 0 10px}
 input[type=checkbox]{width:auto;margin:0}
 label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .gp{font-size:.8rem;color:var(--ai);text-underline-offset:3px;display:inline-block;padding:2px 0}
 .gi .hr.mt{white-space:pre-line;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;color:var(--ink)}
+.sum{background:var(--card);border:1px solid var(--line);padding:14px;margin:12px 0}
+.big{font-family:"Zen Old Mincho",serif;font-size:2rem;font-weight:900;line-height:1.2}
+.bar{display:grid;grid-template-columns:60px 1fr auto;gap:8px;align-items:center;font-size:.85rem;margin-top:6px}
+.bar i{display:block;height:8px;background:var(--shu)}
+.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kp button{font:inherit;font-size:1.3rem;font-weight:700;padding:14px 0;background:var(--card);border:1px solid var(--line);color:var(--ink);cursor:pointer}
+.kp .op{color:var(--shu)}
+.kp .eq{background:var(--shu);color:#fff;border-color:var(--shu);grid-row:span 2}
+.kp .z{grid-column:span 2}
+#cdisp{font-size:2.2rem;font-weight:900;text-align:right;min-height:3rem;overflow-wrap:anywhere}
 .acts{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
@@ -72,6 +82,14 @@ label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
  <div class="map"><div id="map"></div></div>
  <div id="sum"></div>
  <div id="view"></div>
+</section>
+<section id="p-money" hidden>
+ <div class="gh"><h2>記帳</h2><div style="display:flex;gap:8px"><button class="btn" id="mcalc">計算機</button><button class="btn pri" id="xadd">＋記一筆</button></div></div>
+ <div class="sum"><div class="hr">合計</div><div class="big" id="mtot"></div><div class="hr" id="mtw"></div>
+  <div class="hr" style="margin-top:8px">匯率　1 日圓 ≈ NT$ <input id="rate" inputmode="decimal" style="width:80px;display:inline-block;margin:0;padding:4px 8px"></div>
+  <div id="mcat" style="margin-top:8px"></div></div>
+ <div class="chips" id="mchips"></div>
+ <div id="elist"></div>
 </section>
 <section id="p-gift" hidden>
  <div class="gh"><div><h2>伴手禮</h2><div class="hr" id="gcount"></div></div><button class="btn pri" id="gadd">＋新增</button></div>
@@ -93,6 +111,26 @@ label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
  <div style="margin-bottom:12px"><button class="btn" id="egp">在 Google 圖片看這個項目的照片</button></div>
  <div class="acts"><button class="btn danger" id="edel">刪除</button><button class="btn" id="ecl">取消</button><button class="btn pri" id="esv">儲存</button></div>
 </div></div>
+<div id="xo" class="ov" hidden><div class="sheet">
+ <label for="xa">金額</label>
+ <div style="display:flex;gap:8px"><input id="xa" inputmode="decimal" placeholder="0"><button class="btn" id="xcalc" style="margin-bottom:10px">計算機</button></div>
+ <label for="xcur">幣別</label><select id="xcur"><option value="JPY">日圓 ¥</option><option value="TWD">台幣 NT$</option></select>
+ <label for="xcat">分類</label><select id="xcat"></select>
+ <label for="xd">日期</label><input type="date" id="xd">
+ <label for="xn">備註</label><input id="xn" placeholder="例如：一蘭拉麵">
+ <div class="acts"><button class="btn danger" id="xdel">刪除</button><button class="btn" id="xcl">取消</button><button class="btn pri" id="xsv">儲存</button></div>
+</div></div>
+<div id="co" class="ov" hidden><div class="sheet">
+ <div id="cdisp">0</div><div class="hr" id="chint" style="min-height:1.5rem;text-align:right;margin-bottom:10px"></div>
+ <div class="kp" id="ckp">
+  <button data-k="C" class="op">C</button><button data-k="B" class="op">⌫</button><button data-k="÷" class="op">÷</button><button data-k="×" class="op">×</button>
+  <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="−" class="op">−</button>
+  <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="+" class="op">+</button>
+  <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="=" class="eq">=</button>
+  <button data-k="0" class="z">0</button><button data-k=".">.</button>
+ </div>
+ <div class="acts" style="margin-top:12px"><button class="btn" id="ccl">關閉</button><button class="btn pri" id="cuse">帶入金額</button></div>
+</div></div>
 <div id="mo" class="ov" hidden><div class="sheet">
  <label>標題<input id="mti" placeholder="例如：租車取車時間"></label>
  <label>內容<textarea id="mbo" rows="9"></textarea></label>
@@ -108,7 +146,7 @@ const D=[
 ["DAY 5",[["車站町一丁目 別府",33.2798442,131.5003895],["大分機場",33.4796632,131.7362008]]]
 ];
 const DAYN=["一日目","二日目","三日目","四日目","五日目"];
-const TABS=[["plan","旅程"],["gift","伴手禮"],["memo","備忘錄"]];
+const TABS=[["plan","旅程"],["money","記帳"],["gift","伴手禮"],["memo","備忘錄"]];
 const DEF=[
 ["丸ぼうろ","佐賀","佐賀的傳統烘焙點心，口感鬆脆、蛋香樸實，源自南蠻菓子的流傳。"],
 ["小城羊羹","佐賀","表面帶一層薄糖殼、內裡綿密的紅豆羊羹，是小城的代表名產，行程中的村岡屋以羊羹聞名。"],
@@ -195,6 +233,51 @@ $("#ecl").onclick=()=>{$("#ed").hidden=true};
 $("#esv").onclick=()=>{const n=$("#en").value.trim();if(!n){$("#en").focus();return}const o={name:n,area:$("#ea").value.trim(),intro:$("#ei").value.trim(),photo:ephoto,got:$("#eg").checked};if(eid)Object.assign(G.find(x=>x.id===eid),o);else G.push({id:"u"+Date.now(),...o});save();$("#ed").hidden=true;gifts()};
 $("#edel").onclick=()=>{if(confirm("確定刪除這個項目？")){G=G.filter(x=>x.id!==eid);save();$("#ed").hidden=true;gifts()}};
 
+const CATS=["吃的","用的","紀念品","交通","住宿","其他"];
+let E;try{E=JSON.parse(localStorage.getItem("exp"))}catch(e){}if(!Array.isArray(E))E=[];
+let RATE=0.21;try{const r=parseFloat(localStorage.getItem("rate"));if(r>0)RATE=r}catch(e){}
+const saveE=()=>{try{localStorage.setItem("exp",JSON.stringify(E))}catch(e){alert("儲存空間不足，請刪除部分紀錄後再試")}};
+const nf=n=>Math.round(n).toLocaleString("en-US");
+const yen=e=>e.cur==="TWD"?e.amt/RATE:e.amt;
+const fm=e=>e.cur==="TWD"?"NT$"+e.amt.toLocaleString("en-US",{maximumFractionDigits:2}):"¥"+nf(e.amt);
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+const WD="日一二三四五六";
+let filt="全部",xid=null;
+function money(){
+ const tot=E.reduce((a,e)=>a+yen(e),0);
+ $("#mtot").textContent="¥"+nf(tot);$("#mtw").textContent="約 NT$"+nf(tot*RATE);
+ const by={};E.forEach(e=>by[e.cat]=(by[e.cat]||0)+yen(e));
+ const mx=Math.max(1,...Object.values(by));
+ $("#mcat").innerHTML=CATS.filter(c=>by[c]).map(c=>`<div class="bar"><span>${c}</span><i style="width:${by[c]/mx*100}%"></i><b>¥${nf(by[c])}</b></div>`).join("");
+ $("#mchips").innerHTML=["全部",...CATS].map(c=>`<button data-c="${c}" aria-selected="${c===filt}">${c}</button>`).join("");
+ const L=E.filter(e=>filt==="全部"||e.cat===filt).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+ const sub={};L.forEach(e=>sub[e.date]=(sub[e.date]||0)+yen(e));
+ let h="",d="";
+ L.forEach(e=>{if(e.date!==d){d=e.date;const t=new Date(d+"T00:00:00");h+=`<h3>${t.getMonth()+1}/${t.getDate()}（${WD[t.getDay()]}）<span class="hr" style="font-weight:400">　¥${nf(sub[d])}</span></h3>`}
+  h+=`<div class="gi" data-id="${e.id}"><div class="th" style="font-size:.8rem">${esc(e.cat)}</div><div class="b"><div class="t">${esc(e.note||e.cat)}</div></div><b>${fm(e)}</b></div>`});
+ $("#elist").innerHTML=h||'<p class="hr">還沒有紀錄，按右上「＋記一筆」開始。</p>';
+}
+$("#rate").value=RATE;
+$("#rate").onchange=()=>{const r=parseFloat($("#rate").value);if(r>0){RATE=r;try{localStorage.setItem("rate",r)}catch(e){}}else $("#rate").value=RATE;money()};
+$("#mchips").onclick=e=>{const b=e.target.closest("button");if(b){filt=b.dataset.c;money()}};
+$("#elist").onclick=e=>{const r=e.target.closest(".gi");if(r)openX(r.dataset.id)};
+$("#xcat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
+function openX(id){xid=id;const e=id?E.find(x=>x.id===id):{amt:"",cur:"JPY",cat:CATS[0],date:today(),note:""};$("#xa").value=e.amt;$("#xcur").value=e.cur;$("#xcat").value=e.cat;$("#xd").value=e.date;$("#xn").value=e.note;$("#xdel").hidden=!id;$("#xo").hidden=false}
+$("#xadd").onclick=()=>openX(null);
+$("#xcl").onclick=()=>{$("#xo").hidden=true};
+$("#xsv").onclick=()=>{const a=parseFloat($("#xa").value);if(!(a>0)){$("#xa").focus();return}const o={amt:a,cur:$("#xcur").value,cat:$("#xcat").value,date:$("#xd").value||today(),note:$("#xn").value.trim()};if(xid)Object.assign(E.find(x=>x.id===xid),o);else E.push({id:"e"+Date.now(),...o});saveE();$("#xo").hidden=true;money()};
+$("#xdel").onclick=()=>{if(confirm("確定刪除這筆紀錄？")){E=E.filter(x=>x.id!==xid);saveE();$("#xo").hidden=true;money()}};
+let ce="",cfrom=false;
+const cval=()=>{const x=ce.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");if(!x||!/^[0-9+\-*/. ]+$/.test(x))return NaN;try{const v=Function('"use strict";return ('+x+')')();return isFinite(v)?v:NaN}catch(e){return NaN}};
+function cshow(){$("#cdisp").textContent=ce||"0";const v=cval();$("#chint").textContent=isNaN(v)?"":`= ${Math.round(v*100)/100}　≈ NT$${nf(v*RATE)}（以日圓計，匯率 ${RATE}）`}
+function openC(f){cfrom=f;ce=f&&$("#xa").value?String($("#xa").value):"";$("#cuse").hidden=!f;cshow();$("#co").hidden=false}
+$("#mcalc").onclick=()=>openC(false);
+$("#xcalc").onclick=()=>openC(true);
+$("#ccl").onclick=()=>{$("#co").hidden=true};
+$("#cuse").onclick=()=>{const v=cval();if(!isNaN(v))$("#xa").value=Math.round(v*100)/100;$("#co").hidden=true};
+$("#ckp").onclick=e=>{const b=e.target.closest("button");if(!b)return;const k=b.dataset.k;
+ if(k==="C")ce="";else if(k==="B")ce=ce.slice(0,-1);else if(k==="="){const v=cval();if(!isNaN(v))ce=String(Math.round(v*100)/100)}else ce+=k;cshow()};
+
 let M;try{M=JSON.parse(localStorage.getItem("memos"))}catch(e){}if(!Array.isArray(M))M=[];
 const saveM=()=>{try{localStorage.setItem("memos",JSON.stringify(M))}catch(e){alert("儲存空間不足，請刪除一些備忘後再試")}};
 function memos(){$("#mlist").innerHTML=M.length?M.map(m=>`<div class="gi" data-id="${m.id}"><div class="b"><div class="t">${esc(m.title||"（無標題）")}</div><div class="hr mt">${esc(m.body)}</div><div class="hr">${esc(m.at)}</div></div></div>`).join(""):'<p class="hr">還沒有備忘，按右上「＋新增」寫下第一則。</p>'}
@@ -207,7 +290,7 @@ $("#msv").onclick=()=>{const t=$("#mti").value.trim(),b=$("#mbo").value.trim();i
 $("#mdel").onclick=()=>{if(confirm("確定刪除這則備忘？")){M=M.filter(x=>x.id!==mid);saveM();$("#mo").hidden=true;memos()}};
 
 try{const s=+localStorage.getItem("day");if(s>=0&&s<D.length)cur=s}catch(e){}
-initMap();gifts();memos();setDay(cur);tab("plan");
+initMap();gifts();memos();money();setDay(cur);tab("plan");
 </script>
 </body>
 </html>
