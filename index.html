@@ -36,6 +36,9 @@ main{max-width:640px;margin:0 auto;padding:0 18px}
 .hr{font-size:.82rem;color:var(--sub)}
 .go{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;font-size:.85rem}
 .go a{color:var(--ai);text-underline-offset:3px;padding:4px 0}
+.st{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px dashed var(--line);color:var(--sub)}
+.n.s{background:var(--ai);color:var(--onai)}
+.pin.s{background:var(--sub);color:var(--bg)}
 .leg{margin:0 0 0 12px;padding:7px 0 7px 22px;border-left:2px dotted var(--ai);font-size:.8rem;color:var(--ai)}
 a:focus-visible,button:focus-visible,.card:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
 .gh{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0}
@@ -138,13 +141,7 @@ label.row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 </div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-const D=[
-["DAY 1",[["佐賀機場",33.1505692,130.3018177],["大魚神社海中鳥居",33.0312525,130.1777484],["祐德稻荷神社",33.073778,130.1079317,"境內可自由參拜；授與所約 8:30–16:30（依現場公告為準）"],["肥前浜宿酒蔵通り",33.0924071,130.1151793],["HOTEL R9 The Yard 佐賀鹿島",33.1206823,130.091994],["(株)村岡屋 鹿島店",33.1106366,130.0875857]]],
-["DAY 2",[["武雄溫泉 樓門",33.1962371,130.0146614],["佐嘉平川屋（武雄溫泉 本店）",33.196222,130.0150825],["武雄市圖書館·歷史資料館",33.1890331,130.0236947,"圖書館 9:00–21:00，全年無休；歷史資料館 9:00–17:00"],["御船山樂園",33.1823029,130.0179788],["武雄 旅 書店",33.1960484,130.0229315],["youme Town 武雄",33.1887364,130.0251081],["中央飯店 武雄",33.1954133,130.0231871]]],
-["DAY 3",[["湯布院駅前",33.2629542,131.3555275],["Siesta Organic Cafe",33.264324,131.3581301],["湯之坪街道",33.2673861,131.3645627],["金鱗湖",33.2666644,131.3690272],["Traditional Japanese inn Ryokan Hachisunoito",33.266614,131.3518159]]],
-["DAY 4",[["九州自然動物園",33.3509251,131.4137658],["地獄蒸布丁 岡本屋",33.3180542,131.4526114],["別府地獄之旅",33.3158833,131.4696745],["Avatar印度餐廳",33.3151846,131.4723939],["地獄蒸工房 鐵輪",33.3154852,131.4762201],["別府塔",33.2817713,131.5059174],["Noodle Factory Life",33.2775997,131.5039761],["Umi no Hotel Hajime",33.2813065,131.507277]]],
-["DAY 5",[["車站町一丁目 別府",33.2798442,131.5003895],["大分機場",33.4796632,131.7362008]]]
-];
+const D=[["DAY1",[["佐賀機場",33.1505692,130.3018177],["大魚神社海中鳥居",33.0312525,130.1777484,"","海中鳥居受潮汐影響，出發前請查當天潮汐時間"],["祐德稻荷神社",33.073778,130.1079317,"境內可自由參拜；授與所約 8:30–16:30（依現場公告為準）",""],["肥前浜宿酒蔵通り",33.0924071,130.1151793],["HOTEL R9 The Yard 佐賀鹿島",33.1206823,130.091994],["(株)村岡屋 鹿島店",33.1106366,130.0875857],["Honbaindoryori Purunima",33.1169116,130.0976374],["SuperCenterTRIAL KASHIMA",33.1232278,130.0980338],["Tamagoya",33.1184214,130.0938714],["Cake & Coffee Hinodeya",33.1200037,130.0917223]],null],["DAY2",[["Takeoonsen Bussankan Parking Lot",33.1967509,130.0324718],["武雄溫泉 樓門",33.1962371,130.0146614],["佐嘉平川屋（武雄溫泉 本店）",33.196222,130.0150825],["武雄神社",33.1881294,130.0209037],["御船山樂園",33.1823029,130.0179788],["武雄市圖書館·歷史資料館",33.1890331,130.0236947,"圖書館 9:00–21:00，全年無休；歷史資料館 9:00–17:00",""],["youme Town 武雄",33.1887364,130.0251081],["emi cafe",33.1924523,130.0219193],["武雄 旅 書店",33.1960484,130.0229315],["中央飯店 武雄",33.1954133,130.0231871]],["HOTEL R9 The Yard 佐賀鹿島",33.1206823,130.091994]],["DAY3",[["湯布院駅前",33.2629542,131.3555275],["Siesta Organic Cafe",33.264324,131.3581301],["湯之坪街道",33.2673861,131.3645627],["原っぱカフェ Harappa Cafe",33.2678752,131.3636902],["Kagura",33.2683142,131.3643622],["湯布院shiitakemonster",33.2678453,131.3655786],["金鱗湖",33.2666644,131.3690272],["Traditional Japanese inn Ryokan Hachisunoito",33.266614,131.3518159]],["中央飯店 武雄",33.1954133,130.0231871]],["DAY4",[["九州自然動物園",33.3509251,131.4137658],["地獄蒸布丁 岡本屋",33.3180542,131.4526114],["別府地獄之旅",33.3158833,131.4696745,"","各地獄多在傍晚前停止入場，請確認最晚入場時間"],["Avatar印度餐廳",33.3151846,131.4723939],["地獄蒸工房 鐵輪",33.3154852,131.4762201],["別府塔",33.2817713,131.5059174],["Noodle Factory Life",33.2775997,131.5039761],["Umi no Hotel Hajime",33.2813065,131.507277]],["Traditional Japanese inn Ryokan Hachisunoito",33.266614,131.3518159]],["DAY5",[["車站町一丁目 別府",33.2798442,131.5003895],["別府站市場",33.2769657,131.4992579],["竹瓦小路",33.2770334,131.5059114],["大分機場",33.4796632,131.7362008,"","請預留還車、加油與報到的充裕時間"]],["Umi no Hotel Hajime",33.2813065,131.507277]]];
 const DAYN=["一日目","二日目","三日目","四日目","五日目"];
 const TABS=[["plan","旅程"],["money","記帳"],["gift","伴手禮"],["memo","備忘錄"]];
 const DEF=[
@@ -160,31 +157,36 @@ const DEF=[
 ["麥燒酎","大分","大分以麥燒酎聞名，常見品牌有いいちこ、二階堂等；攜帶酒類請留意航空與入境規定。"]];
 const $=s=>document.querySelector(s);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let cur=0,sel=-1,map,mk=[],base,drive;const R={},bad={};
+let cur=0,sel=-1,map,mk=[],base,drive,smk;const R={},bad={};
 const pin=(i,on)=>L.divIcon({className:"",html:`<div class="pin${on?" on":""}">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]});
 const fmt=s=>{const m=Math.round(s/60);return m>=60?Math.floor(m/60)+" 小時 "+(m%60)+" 分":m+" 分"};
 function initMap(){map=L.map("map");L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map)}
 function list(){
- const pts=D[cur][1],r=R[cur];let h="";
+ const day=D[cur],pts=day[1],st=day[2],off=st?1:0,r=R[cur];let h="";
+ const leg=i=>{const l=r&&r.legs[i];return `<div class="leg">${l?`↓ 自駕約 ${fmt(l.duration)}・${(l.distance/1000).toFixed(1)} km`:"↓"}</div>`};
+ if(st)h+=`<div class="st"><span class="n s">起</span><div class="b"><div class="t">出發　${esc(st[0])}</div></div></div>`+leg(0);
  pts.forEach((p,i)=>{
-  h+=`<div class="card${i===sel?" on":""}" data-i="${i}" tabindex="0"><span class="n">${i+1}</span><div class="b"><div class="t">${esc(p[0])}</div>${p[3]?`<div class="hr">營業時間　${esc(p[3])}</div>`:""}<div class="go"><a href="https://maps.apple.com/?ll=${p[1]},${p[2]}&q=${encodeURIComponent(p[0])}">Apple 地圖</a><a href="https://www.google.com/maps/search/?api=1&query=${p[1]},${p[2]}" target="_blank" rel="noopener">Google 地圖</a><a href="https://www.google.com/maps/search/${encodeURIComponent("駐車場")}/@${p[1]},${p[2]},17z" target="_blank" rel="noopener">附近停車場</a></div></div></div>`;
-  if(i<pts.length-1){const l=r&&r.legs[i];h+=`<div class="leg">${l?`↓ 自駕約 ${fmt(l.duration)}・${(l.distance/1000).toFixed(1)} km`:"↓"}</div>`}
+  h+=`<div class="card${i===sel?" on":""}" data-i="${i}" tabindex="0"><span class="n">${i+1}</span><div class="b"><div class="t">${esc(p[0])}</div>${p[3]?`<div class="hr">營業時間　${esc(p[3])}</div>`:""}${p[4]?`<div class="hr">提醒　${esc(p[4])}</div>`:""}<div class="go"><a href="https://maps.apple.com/?ll=${p[1]},${p[2]}&q=${encodeURIComponent(p[0])}">Apple 地圖</a><a href="https://www.google.com/maps/search/?api=1&query=${p[1]},${p[2]}" target="_blank" rel="noopener">Google 地圖</a><a href="https://www.google.com/maps/search/${encodeURIComponent("駐車場")}/@${p[1]},${p[2]},17z" target="_blank" rel="noopener">附近停車場</a></div></div></div>`;
+  if(i<pts.length-1)h+=leg(i+off);
  });
  $("#view").innerHTML=h;
 }
 function summary(){const r=R[cur];$("#sum").textContent=r?`全日自駕約 ${fmt(r.duration)}・${Math.round(r.distance/1000)} km（不含停留，實際依路況與收費道路而定）`:bad[cur]?"路線暫時無法取得，需要網路連線":"路線計算中…"}
+const wpts=()=>(D[cur][2]?[D[cur][2]]:[]).concat(D[cur][1]);
 function drawRoute(){
  const d=cur;
  const show=r=>{if(d!==cur)return;drive&&drive.remove();base&&base.remove();drive=L.polyline(r.geometry.coordinates.map(c=>[c[1],c[0]]),{color:"#c9432e",weight:4,opacity:.85}).addTo(map);list();summary()};
  if(R[d])return show(R[d]);
- const c=D[d][1].map(p=>p[2]+","+p[1]).join(";");
+ const c=wpts().map(p=>p[2]+","+p[1]).join(";");
  fetch("https://router.project-osrm.org/route/v1/driving/"+c+"?overview=full&geometries=geojson").then(r=>r.json()).then(j=>{if(j.code!=="Ok")throw 0;R[d]=j.routes[0];delete bad[d];show(R[d])}).catch(()=>{bad[d]=1;if(d===cur)summary()});
 }
 function drawMap(){
- mk.forEach(m=>m.remove());mk=[];base&&base.remove();drive&&drive.remove();
+ mk.forEach(m=>m.remove());mk=[];smk&&smk.remove();smk=null;base&&base.remove();drive&&drive.remove();
  const ll=D[cur][1].map(p=>[p[1],p[2]]);
- base=L.polyline(ll,{color:"#c9432e",weight:2,opacity:.5,dashArray:"5 6"}).addTo(map);
+ base=L.polyline(wpts().map(p=>[p[1],p[2]]),{color:"#c9432e",weight:2,opacity:.5,dashArray:"5 6"}).addTo(map);
  ll.forEach((x,i)=>{const m=L.marker(x,{icon:pin(i,false)}).addTo(map);m.on("click",()=>pick(i,false));mk.push(m)});
+ const st=D[cur][2];
+ if(st)smk=L.marker([st[1],st[2]],{icon:L.divIcon({className:"",html:'<div class="pin s">起</div>',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map);
  map.fitBounds(L.latLngBounds(ll).pad(.2),{maxZoom:15});
  setTimeout(()=>map.invalidateSize(),60);
  drawRoute();
